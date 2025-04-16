@@ -7,8 +7,6 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
 v0.1b
-
-AS THIS IS A DEVELOPMENT VERSION OF PURPLECART DESIGNER, NO ASSISTANCE WILL BE PROVIDED ON ANY ISSUES
 */
 let button
 let addTextureTC
@@ -89,8 +87,7 @@ function paste(data) {
             <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
             <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
             <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
-            TrainCarts is developed by BergerHealer completely independently of this project.</p><br><br>
-            <strong>As this is a development release of PurpleCart Designer, do not expect assistance on ANY issues</strong>
+            TrainCarts is developed by BergerHealer completely independently of this project.</p>
         </div>
     `
 
