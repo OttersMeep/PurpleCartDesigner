@@ -10,33 +10,33 @@ v0.1b
 
 AS THIS IS A DEVELOPMENT VERSION OF PURPLECART DESIGNER, NO ASSISTANCE WILL BE PROVIDED ON ANY ISSUES
 */
-let button;
-let addTextureTC;
-let textureForm;
-let getTextureName;
+let button
+let addTextureTC
+let textureForm
+let getTextureName
 
 function translate(from1, to1, origin1, rotation1) {
-    from = new THREE.Vector3(from1[0], from1[1], from1[2]);
-    to = new THREE.Vector3(to1[0], to1[1], to1[2]);
-    origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2]);
+    from = new THREE.Vector3(from1[0], from1[1], from1[2])
+    to = new THREE.Vector3(to1[0], to1[1], to1[2])
+    origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2])
     rotationDeg = new THREE.Euler(
         THREE.MathUtils.degToRad(rotation1[0]),
         THREE.MathUtils.degToRad(rotation1[1]),
         THREE.MathUtils.degToRad(rotation1[2])
-    );
+    )
 
     // Step 1: Compute real center of cube
-    realCenter = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5);
+    realCenter = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5)
 
     // Step 2: Offset from pivot to real center
-    offset = new THREE.Vector3().subVectors(realCenter, origin);
+    offset = new THREE.Vector3().subVectors(realCenter, origin)
 
     // Step 3: Apply rotation to offset
-    rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg);
-    rotatedOffset = offset.clone().applyQuaternion(rotationQuat);
+    rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg)
+    rotatedOffset = offset.clone().applyQuaternion(rotationQuat)
 
     // Step 4: Compute adjusted center (as if rotating around own center)
-    adjustedCenter = new THREE.Vector3().addVectors(origin, rotatedOffset);
+    adjustedCenter = new THREE.Vector3().addVectors(origin, rotatedOffset)
 
     return (adjustedCenter)
 }
@@ -58,30 +58,30 @@ function getTextureNameFromUUID(inputUUID) {
 
 function post(data) {
     Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
-    headers = new Headers();
-    headers.append("Content-Type", "text/plain");
+    headers = new Headers()
+    headers.append("Content-Type", "text/plain")
 
-    raw = data;
+    raw = data
 
     requestOptions = {
         method: "POST",
         headers: headers,
         body: raw,
         redirect: "follow"
-    };
+    }
 
     fetch("https://paste.traincarts.net/documents", requestOptions)
         .then((response) => response.text())
         .then((result) => paste(result))
-        .catch((error) => console.error(error));
+        .catch((error) => console.error(error))
 }
 
 function paste(data) {
-    const key = JSON.parse(data).key;
-    const url = `https://paste.traincarts.net/${key}`;
+    const key = JSON.parse(data).key
+    const url = `https://paste.traincarts.net/${key}`
 
     // Copy to clipboard
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(url)
 
     // Create dialog content with an embedded image
     const content = `
@@ -92,7 +92,7 @@ function paste(data) {
             TrainCarts is developed by BergerHealer completely independently of this project.</p><br><br>
             <strong>As this is a development release of PurpleCart Designer, do not expect assistance on ANY issues</strong>
         </div>
-    `;
+    `
 
     // Show a custom HTML dialog
     new Dialog({
@@ -101,31 +101,31 @@ function paste(data) {
         lines: [content],
         width: 800,
         buttons: ['Close']
-    }).show();
+    }).show()
 }
 
 
 function multiplyMatrices(A, B) {
-    rowsA = A.length;
-    colsA = A[0].length;
-    rowsB = B.length;
-    colsB = B[0].length;
+    rowsA = A.length
+    colsA = A[0].length
+    rowsB = B.length
+    colsB = B[0].length
 
     if (colsA !== rowsB) {
-        throw new Error("Matrix dimensions do not match for multiplication");
+        throw new Error("Matrix dimensions do not match for multiplication")
     }
 
-    result = Array.from({ length: rowsA }, () => Array(colsB).fill(0));
+    result = Array.from({ length: rowsA }, () => Array(colsB).fill(0))
 
     for (let i = 0; i < rowsA; i++) {
         for (let j = 0; j < colsB; j++) {
             for (let k = 0; k < colsA; k++) {
-                result[i][j] += A[i][k] * B[k][j];
+                result[i][j] += A[i][k] * B[k][j]
             }
         }
     }
 
-    return result;
+    return result
 }
 
 
@@ -169,8 +169,8 @@ Plugin.register('purplecart_designer', {
                 exportProject()
 
             }
-        });
-        MenuBar.addAction(button, 'filter');
+        })
+        MenuBar.addAction(button, 'filter')
         console.log(`You are using a BETA build of PurpleCart Designer- bugs are expected and features will be missing
 
 PurpleCart Designer is property of OttersMeep and PTM Industries
@@ -181,9 +181,9 @@ minecartrapidtransit.net
 v0.1b`)
     },
     onunload() {
-        button.delete();
+        button.delete()
     }
-});
+})
 
 function exportProject() {
     var cubes = Blockbench.Cube.all
