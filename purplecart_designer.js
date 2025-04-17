@@ -257,7 +257,7 @@ attachments:`
 }
 
 function convertCube(cube) {
-    PosOriginal = [cube.from[0] + cube.to[0] / 2, cube.from[0] + cube.to[0] / 2, cube.from[0] + cube.to[0] / 2]
+    PosOriginal = [cube.from[0] + cube.to[0] / 2, cube.from[1] + cube.to[1] / 2, cube.from[2] + cube.to[2] / 2]
     Rot = cube.rotation
     Pos = translate(cube.from, cube.to, cube.origin, cube.rotation)
     var newCube = {
