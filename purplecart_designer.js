@@ -7,6 +7,8 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
 v0.1b
+
+No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 */
 let button
 let addTextureTC
@@ -175,7 +177,8 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
-v0.1b`)
+v0.1b
+No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself`)
     },
     onunload() {
         button.delete()
