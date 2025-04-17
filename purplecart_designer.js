@@ -41,12 +41,47 @@ function translate(from1, to1, origin1, rotation1) {
     return (adjustedCenter)
 }
 
-function selectedCubeTextureName() {
-    console.log("Debug purposes ONLY")
-    console.log(Blockbench.Cube.all)
+function getModelStructure() {
+    function processGroup(group) {
+        return {
+            type: "group",
+            name: group.name,
+            uuid: group.uuid,
+            children: group.children.map(child => {
+                if (child instanceof Group) {
+                    return processGroup(child);
+                } else if (child instanceof Cube) {
+                    return {
+                        type: "cube",
+                        name: child.name,
+                        uuid: child.uuid
+                    };
+                } else {
+                    return null;
+                }
+            }).filter(Boolean)
+        };
+    }
+
+    const result = Outliner.root.map(rootItem => {
+        if (rootItem instanceof Group) {
+            return processGroup(rootItem);
+        } else if (rootItem instanceof Cube) {
+            return {
+                type: "cube",
+                name: rootItem.name,
+                uuid: rootItem.uuid
+            };
+        } else {
+            return null;
+        }
+    }).filter(Boolean);
+
+    return result;
 }
+
 function getTextureNameFromUUID(inputUUID) {
-    for (let i = 0; i < Texture.all.length; i++) {
+    for (i = 0; i < Texture.all.length; i++) {
         if (Texture.all[i].uuid == inputUUID) {
             textureName = Texture.all[i].name.replace(/\.[^/.]+$/, "")
         }
@@ -143,12 +178,12 @@ Plugin.register('purplecart_designer', {
     version: '0.1b',
     variant: 'both',
     onload() {
-        getTextureName = new Action('get_texture_name', {
-            name: 'Get texture name',
+        getTextureName = new Action('PRINT_PROJECT', {
+            name: 'DEBUG',
             description: 'DEBUG',
             icon: 'feature_search',
             click: function () {
-                selectedCubeTextureName()
+                elementList()
             }
         })
         addTextureTC = new Action('add_texture', {
