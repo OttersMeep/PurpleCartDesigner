@@ -15,11 +15,21 @@ let addTextureTC
 let textureForm
 let getTextureName
 
+function roundTo(n, digits) {
+    if (digits === undefined) {
+        digits = 0;
+    }
+
+    var multiplicator = Math.pow(10, digits);
+    n = parseFloat((n * multiplicator).toFixed(11));
+    return Math.round(n) / multiplicator;
+}
+
 function translate(from1, to1, origin1, rotation1) {
-    from = new THREE.Vector3(from1[0], from1[1], from1[2])
-    to = new THREE.Vector3(to1[0], to1[1], to1[2])
-    origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2])
-    rotationDeg = new THREE.Euler(
+    var from = new THREE.Vector3(from1[0], from1[1], from1[2])
+    var to = new THREE.Vector3(to1[0], to1[1], to1[2])
+    var origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2])
+    var rotationDeg = new THREE.Euler(
         THREE.MathUtils.degToRad(rotation1[0]),
         THREE.MathUtils.degToRad(rotation1[1]),
         THREE.MathUtils.degToRad(rotation1[2])
@@ -162,6 +172,9 @@ function multiplyMatrices(A, B) {
     return result
 }
 
+function debug() {
+    console.log(translate([0,0,0], [16,16,16], [8,8,8], [90,0,0]));
+}
 
 function addTexture(text) {
     data = { name: text }
@@ -183,7 +196,7 @@ Plugin.register('purplecart_designer', {
             description: 'DEBUG',
             icon: 'feature_search',
             click: function () {
-                elementList()
+                debug()
             }
         })
         addTextureTC = new Action('add_texture', {
@@ -257,13 +270,13 @@ attachments:`
 }
 
 function convertCube(cube) {
-    PosOriginal = [cube.from[0] + cube.to[0] / 2, cube.from[1] + cube.to[1] / 2, cube.from[2] + cube.to[2] / 2]
+    PosOriginal = [(cube.from[0] + cube.to[0]) / 2, (cube.from[1] + cube.to[1]) / 2, (cube.from[2] + cube.to[2]) / 2]
     Rot = cube.rotation
     Pos = translate(cube.from, cube.to, cube.origin, cube.rotation)
     var newCube = {
         PosX: Pos.x,
-        PosY: Pos.z,
-        PosZ: Pos.y,
+        PosY: Pos.y,
+        PosZ: Pos.z,
         RotX: Rot[0],
         RotY: Rot[1],
         RotZ: Rot[2],
