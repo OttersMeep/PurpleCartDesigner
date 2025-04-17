@@ -6,14 +6,63 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
-v0.1b
 
 No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 */
+let version = "0.1.2b"
 let button
 let addTextureTC
 let textureForm
 let getTextureName
+
+function verCheck(NwVersion) {
+    NewVersion = NwVersion.tag_name
+    if (NewVersion !== version) {
+        console.log(NewVersion)
+        const content = `
+        <div style="text-align:center")>
+            <p> There seems to be a new version of PurpleCart Designer. The newest version is ${NewVersion} but you have ${version} </p><br>
+            <p> If you are testing a development version of PurpleCart Designer, ignore this message </p>
+        </div>
+    `
+
+    // Show a custom HTML dialog
+    new Dialog({
+        id: 'versionDialog',
+        title: 'New Version Available',
+        lines: [content],
+        width: 800,
+        buttons: ['Close']
+    }).show()
+    }
+}
+
+
+function checkVersion() {
+    headers = new Headers()
+    headers.append("Content-Type", "text/plain")
+    headers.append("User-Agent", "OttersMeep-PurpleCartDesigner")
+
+    requestOptions = {
+        method: "GET",
+        headers: headers,
+        redirect: "follow"
+    }
+
+    fetch("https://api.github.com/repos/OttersMeep/PurpleCartDesigner/releases/latest")
+    .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json(); // call the function here
+        })
+        .then(data => {
+            verCheck(data); // you'll see the real response here
+        })
+        .catch(error => {
+            console.error("Error fetching version:", error);
+        });
+}
+
+
 
 function roundTo(n, digits) {
     if (digits === undefined) {
@@ -191,6 +240,7 @@ Plugin.register('purplecart_designer', {
     version: '0.1b',
     variant: 'both',
     onload() {
+        checkVersion()
         getTextureName = new Action('PRINT_PROJECT', {
             name: 'DEBUG',
             description: 'DEBUG',
@@ -225,7 +275,7 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
-v0.1b
+${version}
 No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself`)
     },
     onunload() {
