@@ -33,8 +33,7 @@ jobs:
       - name: Extract version from JS
         id: get_version
         run: |
-          # Use a safer method to extract the version.
-          VERSION=$(grep -oP 'export const version = "\K[^"]+' ./src/main.js)
+          VERSION=$(sed -n 's/^export const version = "\([^"]*\)";$/\1/p' ./src/main.js)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
         shell: bash
