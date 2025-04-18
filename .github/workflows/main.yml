@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Add this line
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -41,10 +43,10 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
           release_name: Release v${{ steps.get_version.outputs.version }}
-          draft: false
+          draft: true
           prerelease: false
-      - name: List files
-        run: ls -l
+          fail_if_exists: false # Add this line
+
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
         with:
@@ -52,3 +54,4 @@ jobs:
           asset_path: ./purplecart_designer.js # Path to your built script
           asset_name: purplecart_designer.js
           asset_content_type: application/javascript # Correct MIME type
+          token: ${{ secrets.GITHUB_TOKEN }} # Add this line
