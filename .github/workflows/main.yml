@@ -38,8 +38,8 @@ jobs:
       - name: List files
         run: ls -l # Added this step to list files
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: GH Release
+        uses: softprops/action-gh-release@v2.2.1
         if: github.ref_type == 'tag'
         with:
           tag_name: ${{ github.ref_name }} # Use the tag name from the trigger
