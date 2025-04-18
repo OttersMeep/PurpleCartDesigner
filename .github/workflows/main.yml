@@ -45,5 +45,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.version }} # Use the version from the get_version step
+          tag_name: ${{ steps.get_version.outputs.version }} # Use the version from the get_version step
           files: purplecart_designer.js
