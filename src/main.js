@@ -9,13 +9,12 @@ minecartrapidtransit.net
 
 No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 */
-let version = "0.2.1"
+export const version = "0.2.1"
 let button
 let addTextureTC
 let textureForm
 let getTextureName
 import * as YAML from 'yaml';
-
 
 
 function verCheck(NwVersion) {
