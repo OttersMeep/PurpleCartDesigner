@@ -43,9 +43,12 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
           release_name: Release v${{ steps.get_version.outputs.version }}
-          draft: true
+          draft: false
           prerelease: false
           fail_if_exists: false # Add this line
+
+      - name: List files
+        run: ls -l # Added this step to list files
 
       - name: Upload artifact
         uses: actions/upload-release-asset@v1
