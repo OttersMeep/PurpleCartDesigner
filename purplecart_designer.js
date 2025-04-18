@@ -3469,6 +3469,37 @@ ${cn.comment}` : item.comment;
   }
   function post(data2) {
     console.log(data2);
+    Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings");
+    headers = new Headers();
+    headers.append("Content-Type", "text/plain");
+    raw = data2;
+    requestOptions = {
+      method: "POST",
+      headers,
+      body: raw,
+      redirect: "follow"
+    };
+    fetch("https://paste.traincarts.net/documents", requestOptions).then((response) => response.text()).then((result2) => paste(result2)).catch((error) => console.error(error));
+  }
+  function paste(data2) {
+    const key = JSON.parse(data2).key;
+    const url = `https://paste.traincarts.net/${key}`;
+    navigator.clipboard.writeText(url);
+    const content = `
+        <div style="text-align:center")>
+            <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
+            <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
+            <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
+            TrainCarts is developed by BergerHealer completely independently of this project.</p>
+        </div>
+    `;
+    new Dialog({
+      id: "paste_upload_dialog",
+      title: "Export Finished",
+      lines: [content],
+      width: 800,
+      buttons: ["Close"]
+    }).show();
   }
   function debug() {
     console.log(translate([0, 0, 0], [16, 16, 16], [8, 8, 8], [90, 0, 0]));
