@@ -9,7 +9,7 @@ minecartrapidtransit.net
 
 No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 */
-let version = "0.1.4b"
+let version = "0.2.1"
 let button
 let addTextureTC
 let textureForm
@@ -39,7 +39,6 @@ function verCheck(NwVersion) {
     }
 }
 
-
 function checkVersion() {
     headers = new Headers()
     headers.append("Content-Type", "text/plain")
@@ -67,52 +66,52 @@ function checkVersion() {
 function fixHyphenatedYAMLArray(yamlString) {
     const lines = yamlString.split('\n');
     const newLines = [];
-    let inTopLevelAttachments = false;
-    let indexCounter = 0;
-    let currentIndent = 0;
+    const attachStack = [];
+    let procNames = false;
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const trimmedLine = line.trimStart();
-        const leadingSpaces = line.length - trimmedLine.length;
+        const trim = line.trimStart();
+        const indent = line.length - trim.length;
 
-        if (trimmedLine.startsWith('attachments:')) {
-            inTopLevelAttachments = true;
+        if (trim.startsWith('attachments:')) {
             newLines.push(line);
-        } else if (inTopLevelAttachments && trimmedLine.startsWith('- ')) {
-            const itemContent = trimmedLine.substring(2);
-            const indexLine = `${' '.repeat(leadingSpaces)}${indexCounter}:`;
-            newLines.push(indexLine);
-            const contentLines = itemContent.split('\n').map((contentLine, index) => {
-                const contentTrimmed = contentLine.trimStart();
-                const contentLeadingSpaces = contentLine.length - contentTrimmed.length;
-                return `${' '.repeat(leadingSpaces + 2)}${contentTrimmed}`;
-            });
-            newLines.push(...contentLines);
-            indexCounter++;
-            currentIndent = leadingSpaces;
-        } else if (inTopLevelAttachments && leadingSpaces > currentIndent && trimmedLine.includes(':')) {
-            newLines.push(line);
+            attachStack.push({ indent: indent + 2, index: 0 });
+        } else if (attachStack.length) {
+            const current = attachStack[attachStack.length - 1];
+            if (indent === current.indent && trim.startsWith('- type:')) {
+                procNames = false;
+                newLines.push(`${' '.repeat(indent - 2)}${current.index}:`);
+                line.split('\n').forEach(l => newLines.push(`${' '.repeat(indent + 2)}${l.trimStart()}`));
+                current.index++;
+            } else if (indent === current.indent && trim.startsWith('names:')) {
+                newLines.push(`${' '.repeat(indent)}names:`);
+                procNames = true;
+            } else if (procNames && indent === current.indent + 2) {
+                newLines.push(`${' '.repeat(indent)}- ${trim}`);
+            } else if (indent > current.indent) {
+                newLines.push(line);
+            } else if (indent < current.indent) {
+                attachStack.pop();
+                procNames = false;
+                newLines.push(line);
+            } else {
+                newLines.push(line);
+                procNames = false;
+            }
         } else {
             newLines.push(line);
-            if (inTopLevelAttachments && !trimmedLine.startsWith('- ')) {
-                indexCounter = 0;
-                inTopLevelAttachments = false;
-                currentIndent = 0;
-            }
         }
     }
-
     return newLines.join('\n');
 }
-
 
 function exportProject() {
     let structure = getModelStructure();
     let output = {
         type: "EMPTY",
         entityType: "MINECART",
-        attachments: [] // Initially build as an array
+        attachments: {} // Initialize as object
     };
 
     walkStructure(structure, output.attachments);
@@ -122,10 +121,10 @@ function exportProject() {
         selectedIndex: 0
     };
     output.position = {};
-
-    let yamlString = YAML.stringify(output);
-    const fixedYamlString = fixHyphenatedYAMLArray(yamlString);
-    post(fixedYamlString); // Post the fixed YAML
+    output.names = Array.isArray(output.names) ? output.names : (output.names ? [output.names] : []); // Ensure top-level names is an array
+    const regex = /"(\d+)":/g;
+    let data = YAML.stringify(output).replace(regex, "$1:");
+    post(data);
 }
 
 function roundTo(n, digits) {
@@ -166,20 +165,21 @@ function translate(from1, to1, origin1, rotation1) {
 
 
 
-function walkStructure(children, outArray) {
-    children.forEach(child => {
+function walkStructure(children, outObject) {
+    children.forEach((child, index) => {
         if (child.type == "group") {
             const groupAttachment = {
                 type: "EMPTY",
                 entityType: "MINECART",
-                attachments: [] // Initially build as an array
+                attachments: {}, // Initialize as object for nested attachments
+                names: Array.isArray(child.name) ? child.name : [child.name] // Ensure names is always an array
             };
 
-            // Recurse into the group’s children
+            // Recurse into the group’s children, passing the nested attachments object
             walkStructure(child.children, groupAttachment.attachments);
 
-            // Push this group into the output array
-            outArray.push(groupAttachment);
+            // Assign the group attachment to the output object with the current index
+            outObject[index] = groupAttachment;
         } else if (child.type == "cube") {
             const cube = findCubeByUUID(child.uuid);
             const textureName = getTextureNameFromUUID(cube.faces.down.texture);
@@ -203,11 +203,12 @@ function walkStructure(children, outArray) {
                     sizeX: newCube.sizeX,
                     sizeY: newCube.sizeY,
                     sizeZ: newCube.sizeZ
-                }
+                },
+                names: Array.isArray(child.name) ? child.name : [child.name] // Ensure names is always an array
             };
 
-            // Push this cube into the output array
-            outArray.push(itemAttachment);
+            // Assign the item attachment to the output object with the current index
+            outObject[index] = itemAttachment;
         }
     });
 }
@@ -252,7 +253,6 @@ function getModelStructure() {
             return null;
         }
     }).filter(Boolean);
-    console.log(result)
     return result;
 }
 
@@ -268,7 +268,6 @@ function getTextureNameFromUUID(inputUUID) {
 }
 
 function post(data) {
-    console.log(data)
     Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
     headers = new Headers()
     headers.append("Content-Type", "text/plain")
@@ -402,6 +401,7 @@ No generative artificial intelligence was used in the making of this code, as I 
 })
 
 /*function exportProject() {
+
     var cubes = Blockbench.Cube.all
     let doubleSpace = `  `
     let quadrupleSpace = `    `
@@ -437,6 +437,7 @@ attachments:`
   post(data)
 }
 */
+
 function convertCube(cube) {
     PosOriginal = [(cube.from[0] + cube.to[0]) / 2, (cube.from[1] + cube.to[1]) / 2, (cube.from[2] + cube.to[2]) / 2]
     Rot = cube.rotation
@@ -455,7 +456,6 @@ function convertCube(cube) {
     }
     return newCube
 }
-
 
 function convertRotation(PosX, PosY, PivX, PivY, RotX, RotY) {
     newDegreeFacingCenter = Math.asin((PosX - PivX) / Math.sqrt(Math.pow((PosX - PivX), 2) + Math.pow((PosX - PivX), 2))) / (Math.PI / 180)
