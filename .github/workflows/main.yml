@@ -1,0 +1,51 @@
+name: Build and Release Script
+
+on:
+  push:
+    branches:
+      - main # Or your main branch name
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # Or your required Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build script
+        run: npm run build.js # Or the command to run your build script
+
+      - name: Extract version from JS
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./purplecart_designer.js').version") # Adjust path if needed
+          echo "::set-output name=version::$VERSION"
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
+          release_name: Release v${{ steps.get_version.outputs.version }}
+          draft: true
+          prerelease: false
+
+      - name: Upload artifact
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./purplecart_designer.js # Path to your built script
+          asset_name: purplecart_designer.js
+          asset_content_type: application/javascript # Correct MIME type
