@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Build script
-        run: npm run build.js # Or the command to run your build script
+        run: node build.js # Or the command to run your build script
 
       - name: Extract version from JS
         id: get_version
