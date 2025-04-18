@@ -9,7 +9,7 @@ minecartrapidtransit.net
 
 No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 */
-let version = "0.1.4b"
+let version = "0.2"
 let button
 let addTextureTC
 let textureForm
