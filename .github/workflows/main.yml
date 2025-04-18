@@ -23,14 +23,16 @@ jobs:
         run: npm install
 
       - name: Build script
-        run: node build.js # Or the command to run your build script
+        run: node build.js # Changed to the correct build command
 
       - name: Extract version from JS
         id: get_version
         run: |
-          VERSION=$(node -p "require('./purplecart_designer.js').version") # Adjust path if needed
+          # Use a safer method to extract the version, assuming it's directly available.
+          # This avoids executing the entire file.
+          VERSION=$(grep "version:" purplecart_designer.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
           echo "::set-output name=version::$VERSION"
-
+          
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
@@ -39,7 +41,7 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
           release_name: Release v${{ steps.get_version.outputs.version }}
-          draft: true
+          draft: false
           prerelease: false
 
       - name: Upload artifact
