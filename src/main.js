@@ -64,7 +64,69 @@ function checkVersion() {
         });
 }
 
+function fixHyphenatedYAMLArray(yamlString) {
+    const lines = yamlString.split('\n');
+    const newLines = [];
+    let inTopLevelAttachments = false;
+    let indexCounter = 0;
+    let currentIndent = 0;
 
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trimStart();
+        const leadingSpaces = line.length - trimmedLine.length;
+
+        if (trimmedLine.startsWith('attachments:')) {
+            inTopLevelAttachments = true;
+            newLines.push(line);
+        } else if (inTopLevelAttachments && trimmedLine.startsWith('- ')) {
+            const itemContent = trimmedLine.substring(2);
+            const indexLine = `${' '.repeat(leadingSpaces)}${indexCounter}:`;
+            newLines.push(indexLine);
+            const contentLines = itemContent.split('\n').map((contentLine, index) => {
+                const contentTrimmed = contentLine.trimStart();
+                const contentLeadingSpaces = contentLine.length - contentTrimmed.length;
+                return `${' '.repeat(leadingSpaces + 2)}${contentTrimmed}`;
+            });
+            newLines.push(...contentLines);
+            indexCounter++;
+            currentIndent = leadingSpaces;
+        } else if (inTopLevelAttachments && leadingSpaces > currentIndent && trimmedLine.includes(':')) {
+            newLines.push(line);
+        } else {
+            newLines.push(line);
+            if (inTopLevelAttachments && !trimmedLine.startsWith('- ')) {
+                indexCounter = 0;
+                inTopLevelAttachments = false;
+                currentIndent = 0;
+            }
+        }
+    }
+
+    return newLines.join('\n');
+}
+
+
+function exportProject() {
+    let structure = getModelStructure();
+    let output = {
+        type: "EMPTY",
+        entityType: "MINECART",
+        attachments: [] // Initially build as an array
+    };
+
+    walkStructure(structure, output.attachments);
+
+    // Add final metadata
+    output.editor = {
+        selectedIndex: 0
+    };
+    output.position = {};
+
+    let yamlString = YAML.stringify(output);
+    const fixedYamlString = fixHyphenatedYAMLArray(yamlString);
+    post(fixedYamlString); // Post the fixed YAML
+}
 
 function roundTo(n, digits) {
     if (digits === undefined) {
@@ -102,57 +164,28 @@ function translate(from1, to1, origin1, rotation1) {
     return (adjustedCenter)
 }
 
-function exportProject() {
-    let structure = getModelStructure()
-    let output = {
-        type: "EMPTY",
-        entityType: "MINECART",
-        attachments: {}
-    }
 
-    let counter = { value: 0 } // Object so we can increment across recursion
-    walkStructure(structure, output.attachments)
 
-    // Add final metadata
-    output.editor = {
-        selectedIndex: 0
-    }
-    output.position = {}
-
-    let data = YAML.stringify(output)
-    post(data)
-}
-
-function walkStructure(children, outObj) {
-    var counter = { value: 0 };  // Use an object to keep track of the counter as a reference
-
+function walkStructure(children, outArray) {
     children.forEach(child => {
         if (child.type == "group") {
-            // Create a new group object and recursively process the group's children
-            var groupObj = {
+            const groupAttachment = {
                 type: "EMPTY",
                 entityType: "MINECART",
-                attachments: []  // Initialize the attachments array for the group
+                attachments: [] // Initially build as an array
             };
 
-            // Recursively call walkStructure to process this group's children
-            walkStructure(child.children, groupObj.attachments);
+            // Recurse into the group’s children
+            walkStructure(child.children, groupAttachment.attachments);
 
-            // Now that the group is processed, assign it to the output object with a dynamic key
-            outObj[counter.value++] = groupObj;  // Increment the counter and add to outObj
+            // Push this group into the output array
+            outArray.push(groupAttachment);
         } else if (child.type == "cube") {
-            // Find the cube by UUID (assuming this function is implemented elsewhere)
-            var cube = findCubeByUUID(child.uuid);
-            console.log(cube);
+            const cube = findCubeByUUID(child.uuid);
+            const textureName = getTextureNameFromUUID(cube.faces.down.texture);
+            const newCube = convertCube(cube);
 
-            // Get the texture name from the cube's face (e.g., down texture)
-            var textureName = getTextureNameFromUUID(cube.faces.down.texture);
-
-            // Convert the cube to its new structure (assuming this function is implemented elsewhere)
-            var newCube = convertCube(cube);
-
-            // Create the item object based on the cube
-            outObj[counter.value++] = {
+            const itemAttachment = {
                 type: "ITEM",
                 item: {
                     "==": "org.bukkit.inventory.ItemStack",
@@ -172,9 +205,15 @@ function walkStructure(children, outObj) {
                     sizeZ: newCube.sizeZ
                 }
             };
+
+            // Push this cube into the output array
+            outArray.push(itemAttachment);
         }
     });
 }
+
+
+
 
 
 
@@ -229,7 +268,8 @@ function getTextureNameFromUUID(inputUUID) {
 }
 
 function post(data) {
-    Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
+    console.log(data)
+    /*Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
     headers = new Headers()
     headers.append("Content-Type", "text/plain")
 
@@ -245,7 +285,7 @@ function post(data) {
     fetch("https://paste.traincarts.net/documents", requestOptions)
         .then((response) => response.text())
         .then((result) => paste(result))
-        .catch((error) => console.error(error))
+        .catch((error) => console.error(error))*/
 }
 
 function paste(data) {
