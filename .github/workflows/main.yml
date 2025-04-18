@@ -43,7 +43,7 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
           release_name: Release v${{ steps.get_version.outputs.version }}
-          draft: false
+          draft: true
           prerelease: false
           fail_if_exists: false # Add this line
 
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./purplecart_designer.js # Path to your built script
+          asset_path: purplecart_designer.js # Path to your built script
           asset_name: purplecart_designer.js
           # Removed the 'token' key here
           asset_content_type: application/javascript
