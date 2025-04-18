@@ -32,29 +32,15 @@ jobs:
         run: |
           # Use a safer method to extract the version, assuming it's directly available.
           # This avoids executing the entire file.
-          VERSION=$(grep "version:" purplecart_designer.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
+          VERSION=$(grep "version:" main.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
           echo "::set-output name=version::$VERSION"
           
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }} # Use the extracted version
-          release_name: Release v${{ steps.get_version.outputs.version }}
-          draft: true
-          prerelease: false
-          fail_if_exists: false # Add this line
-
       - name: List files
         run: ls -l # Added this step to list files
 
-      - name: Upload artifact
-        uses: actions/upload-release-asset@v1
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: purplecart_designer.js # Path to your built script
-          asset_name: purplecart_designer.js
-          # Removed the 'token' key here
-          asset_content_type: application/javascript
+          tag_name: ${{ github.ref_name }} # Use the tag name from the trigger
+          files: purplecart_designer.js
