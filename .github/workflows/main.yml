@@ -32,7 +32,7 @@ jobs:
         run: |
           # Use a safer method to extract the version, assuming it's directly available.
           # This avoids executing the entire file.
-          VERSION=$(grep "version:" purplecart_designer.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
+          VERSION=$(grep "version:" ./src/main.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
           echo "::set-output name=version::$VERSION"
           echo "Extracted version: $VERSION" # Display the version
 
