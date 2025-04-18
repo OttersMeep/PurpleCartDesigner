@@ -30,6 +30,11 @@ jobs:
           echo "Error: ./src/main.js not found!"
           exit 1
           fi
+      - name: Show main.js contents
+        run: cat ./src/main.js
+      - name: Try raw grep (debug)
+        run: grep version ./src/main.js
+        
       - name: Extract version from JS
         id: get_version
         run: |
