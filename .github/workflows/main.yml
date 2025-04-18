@@ -1,10 +1,7 @@
 name: Build and Release Script
 
 on:
-  push:
-    branches:
-      - main # Or your main branch name
-  workflow_dispatch: # Allows manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,24 +11,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Add this line
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18 # Or your required Node.js version
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
       - name: Build script
-        run: node build.js # Changed to the correct build command
+        run: node build.js
 
       - name: Extract version from JS
         id: get_version
         run: |
-          # Use a safer method to extract the version.
-          VERSION=$(grep "version:" ./src/main.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
+          VERSION=$(grep "export const version" ./src/main.js | head -n 1 | awk -F'\"' '{print $2}')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
         shell: bash
