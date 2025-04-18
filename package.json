@@ -1,0 +1,24 @@
+{
+  "name": "purplecartdesigner",
+  "version": "1.0.0",
+  "description": "A Blockbench -> Traincarts Attatchments converter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OttersMeep/PurpleCartDesigner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OttersMeep/PurpleCartDesigner/issues"
+  },
+  "homepage": "https://github.com/OttersMeep/PurpleCartDesigner#readme",
+  "dependencies": {
+    "esbuild": "^0.25.2",
+    "yaml": "^2.7.1"
+  }
+}
