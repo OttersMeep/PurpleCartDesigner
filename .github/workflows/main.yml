@@ -23,7 +23,13 @@ jobs:
 
       - name: Build script
         run: node build.js # Changed to the correct build command
-
+      - name: Check for main
+        run: |
+          ls -l ./src/main.js
+          if [ ! -f "./src/main.js" ]; then
+          echo "Error: ./src/main.js not found!"
+          exit 1
+          fi
       - name: Extract version from JS
         id: get_version
         run: |
