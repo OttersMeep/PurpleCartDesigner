@@ -3311,6 +3311,61 @@ ${cn.comment}` : item.comment;
       console.error("Error fetching version:", error);
     });
   }
+  function fixHyphenatedYAMLArray(yamlString) {
+    const lines = yamlString.split("\n");
+    const newLines = [];
+    let inTopLevelAttachments = false;
+    let indexCounter = 0;
+    let currentIndent = 0;
+    for (let i2 = 0; i2 < lines.length; i2++) {
+      const line = lines[i2];
+      const trimmedLine = line.trimStart();
+      const leadingSpaces = line.length - trimmedLine.length;
+      if (trimmedLine.startsWith("attachments:")) {
+        inTopLevelAttachments = true;
+        newLines.push(line);
+      } else if (inTopLevelAttachments && trimmedLine.startsWith("- ")) {
+        const itemContent = trimmedLine.substring(2);
+        const indexLine = `${" ".repeat(leadingSpaces)}${indexCounter}:`;
+        newLines.push(indexLine);
+        const contentLines = itemContent.split("\n").map((contentLine, index) => {
+          const contentTrimmed = contentLine.trimStart();
+          const contentLeadingSpaces = contentLine.length - contentTrimmed.length;
+          return `${" ".repeat(leadingSpaces + 2)}${contentTrimmed}`;
+        });
+        newLines.push(...contentLines);
+        indexCounter++;
+        currentIndent = leadingSpaces;
+      } else if (inTopLevelAttachments && leadingSpaces > currentIndent && trimmedLine.includes(":")) {
+        newLines.push(line);
+      } else {
+        newLines.push(line);
+        if (inTopLevelAttachments && !trimmedLine.startsWith("- ")) {
+          indexCounter = 0;
+          inTopLevelAttachments = false;
+          currentIndent = 0;
+        }
+      }
+    }
+    return newLines.join("\n");
+  }
+  function exportProject() {
+    let structure = getModelStructure();
+    let output = {
+      type: "EMPTY",
+      entityType: "MINECART",
+      attachments: []
+      // Initially build as an array
+    };
+    walkStructure(structure, output.attachments);
+    output.editor = {
+      selectedIndex: 0
+    };
+    output.position = {};
+    let yamlString = stringify3(output);
+    const fixedYamlString = fixHyphenatedYAMLArray(yamlString);
+    post(fixedYamlString);
+  }
   function translate(from1, to1, origin1, rotation1) {
     var from = new THREE.Vector3(from1[0], from1[1], from1[2]);
     var to = new THREE.Vector3(to1[0], to1[1], to1[2]);
@@ -3327,39 +3382,22 @@ ${cn.comment}` : item.comment;
     adjustedCenter = new THREE.Vector3().addVectors(origin, rotatedOffset);
     return adjustedCenter;
   }
-  function exportProject() {
-    let structure = getModelStructure();
-    let output = {
-      type: "EMPTY",
-      entityType: "MINECART",
-      attachments: {}
-    };
-    let counter = { value: 0 };
-    walkStructure(structure, output.attachments);
-    output.editor = {
-      selectedIndex: 0
-    };
-    output.position = {};
-    let data2 = stringify3(output);
-    post(data2);
-  }
-  function walkStructure(children, outObj, counter = { value: 0 }) {
+  function walkStructure(children, outArray) {
     children.forEach((child) => {
       if (child.type == "group") {
-        var groupObj = {
+        const groupAttachment = {
           type: "EMPTY",
           entityType: "MINECART",
           attachments: []
-          // Initialize the attachments array for the group
+          // Initially build as an array
         };
-        walkStructure(child.children, groupObj.attachments, counter);
-        outObj[counter.value++] = groupObj;
+        walkStructure(child.children, groupAttachment.attachments);
+        outArray.push(groupAttachment);
       } else if (child.type == "cube") {
-        var cube = findCubeByUUID(child.uuid);
-        console.log(cube);
-        var textureName2 = getTextureNameFromUUID(cube.faces.down.texture);
-        var newCube = convertCube(cube);
-        outObj[counter.value++] = {
+        const cube = findCubeByUUID(child.uuid);
+        const textureName2 = getTextureNameFromUUID(cube.faces.down.texture);
+        const newCube = convertCube(cube);
+        const itemAttachment = {
           type: "ITEM",
           item: {
             "==": "org.bukkit.inventory.ItemStack",
@@ -3379,6 +3417,7 @@ ${cn.comment}` : item.comment;
             sizeZ: newCube.sizeZ
           }
         };
+        outArray.push(itemAttachment);
       }
     });
   }
@@ -3429,37 +3468,7 @@ ${cn.comment}` : item.comment;
     return textureName;
   }
   function post(data2) {
-    Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings");
-    headers = new Headers();
-    headers.append("Content-Type", "text/plain");
-    raw = data2;
-    requestOptions = {
-      method: "POST",
-      headers,
-      body: raw,
-      redirect: "follow"
-    };
-    fetch("https://paste.traincarts.net/documents", requestOptions).then((response) => response.text()).then((result2) => paste(result2)).catch((error) => console.error(error));
-  }
-  function paste(data2) {
-    const key = JSON.parse(data2).key;
-    const url = `https://paste.traincarts.net/${key}`;
-    navigator.clipboard.writeText(url);
-    const content = `
-        <div style="text-align:center")>
-            <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
-            <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
-            <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
-            TrainCarts is developed by BergerHealer completely independently of this project.</p>
-        </div>
-    `;
-    new Dialog({
-      id: "paste_upload_dialog",
-      title: "Export Finished",
-      lines: [content],
-      width: 800,
-      buttons: ["Close"]
-    }).show();
+    console.log(data2);
   }
   function debug() {
     console.log(translate([0, 0, 0], [16, 16, 16], [8, 8, 8], [90, 0, 0]));
