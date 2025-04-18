@@ -269,7 +269,7 @@ function getTextureNameFromUUID(inputUUID) {
 
 function post(data) {
     console.log(data)
-    /*Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
+    Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
     headers = new Headers()
     headers.append("Content-Type", "text/plain")
 
@@ -285,7 +285,7 @@ function post(data) {
     fetch("https://paste.traincarts.net/documents", requestOptions)
         .then((response) => response.text())
         .then((result) => paste(result))
-        .catch((error) => console.error(error))*/
+        .catch((error) => console.error(error))
 }
 
 function paste(data) {
