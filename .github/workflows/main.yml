@@ -32,15 +32,15 @@ jobs:
         run: |
           # Use a safer method to extract the version, assuming it's directly available.
           # This avoids executing the entire file.
-          VERSION=$(grep "version:" main.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
+          VERSION=$(grep "version:" purplecart_designer.js | head -n 1 | awk -F":" '{print $2}' | tr -d ' ",')
           echo "::set-output name=version::$VERSION"
-          
+          echo "Extracted version: $VERSION" # Display the version
+
       - name: List files
         run: ls -l # Added this step to list files
 
-      - name: GH Release
-        uses: softprops/action-gh-release@v2.2.1
-        if: github.ref_type == 'tag'
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }} # Use the tag name from the trigger
+          tag_name: ${{ steps.get_version.outputs.version }}
           files: purplecart_designer.js
