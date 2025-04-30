@@ -3459,8 +3459,9 @@ ${cn.comment}` : item.comment;
   }
   function convertAnimations() {
     animations = getAnimations();
+    fixed_animations = [];
     for (i = 0; i < animations.length; i++) {
-      convertAnimation(animations[i]);
+      fixed_animations.push(convertAnimation(animations[i]));
     }
   }
   function convertAnimation(animation) {
@@ -3480,33 +3481,36 @@ ${cn.comment}` : item.comment;
     }
     var transformations = {};
     if (type.position) {
-      transformations.position = {};
+      transformations.position = [];
       for (i = 0; i < animation.position.length; i++) {
         var keyframe = animation.position[i];
-        transformations.position[keyframe.time] = {};
-        transformations.position[keyframe.time].x = keyframe.data_points[0].x;
-        transformations.position[keyframe.time].y = keyframe.data_points[0].y;
-        transformations.position[keyframe.time].z = keyframe.data_points[0].z;
-      }
-    }
-    if (type.scale) {
-      transformations.scale = {};
-      for (i = 0; i < animation.scale.length; i++) {
-        var keyframe = animation.scale[i];
-        transformations.scale[keyframe.time] = {};
-        transformations.scale[keyframe.time].x = keyframe.data_points[0].x;
-        transformations.scale[keyframe.time].y = keyframe.data_points[0].y;
-        transformations.scale[keyframe.time].z = keyframe.data_points[0].z;
+        transformations.position[i] = {};
+        transformations.position[i].x = keyframe.data_points[0].x;
+        transformations.position[i].y = keyframe.data_points[0].y;
+        transformations.position[i].z = keyframe.data_points[0].z;
+        transformations.position[i].time = keyframe.time;
       }
     }
     if (type.rotation) {
-      transformations.rotation = {};
+      transformations.rotation = [];
       for (i = 0; i < animation.rotation.length; i++) {
         var keyframe = animation.rotation[i];
-        transformations.rotation[keyframe.time] = {};
-        transformations.rotation[keyframe.time].x = keyframe.data_points[0].x;
-        transformations.rotation[keyframe.time].y = keyframe.data_points[0].y;
-        transformations.rotation[keyframe.time].z = keyframe.data_points[0].z;
+        transformations.rotation[i] = {};
+        transformations.rotation[i].x = keyframe.data_points[0].x;
+        transformations.rotation[i].y = keyframe.data_points[0].y;
+        transformations.rotation[i].z = keyframe.data_points[0].z;
+        transformations.rotation[i].time = keyframe.time;
+      }
+    }
+    if (type.scale) {
+      transformations.scale = [];
+      for (i = 0; i < animation.scale.length; i++) {
+        var keyframe = animation.scale[i];
+        transformations.scale[i] = {};
+        transformations.scale[i].x = keyframe.data_points[0].x;
+        transformations.scale[i].y = keyframe.data_points[0].y;
+        transformations.scale[i].z = keyframe.data_points[0].z;
+        transformations.scale[i].time = keyframe.time;
       }
     }
     console.log(transformations);
@@ -3560,6 +3564,7 @@ ${cn.comment}` : item.comment;
     }).show();
   }
   function debug() {
+    console.log(getModelStructure());
     convertAnimations();
   }
   Plugin.register("purplecart_designer", {

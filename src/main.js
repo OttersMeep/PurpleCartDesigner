@@ -261,8 +261,9 @@ function getTextureNameFromUUID(inputUUID) {
 
 function convertAnimations() {
     animations = getAnimations()
+    fixed_animations = []
     for (i=0;i<animations.length;i++) {
-    convertAnimation(animations[i])
+    fixed_animations.push(convertAnimation(animations[i]))
     }
 }
 
@@ -285,33 +286,36 @@ function convertAnimation(animation) {
     var transformations = {}
     // Now let's actually do the thing this function is going to do
     if (type.position) {
-        transformations.position = {}
+        transformations.position = []
         for (i=0;i<animation.position.length;i++) {
             var keyframe = animation.position[i]
-            transformations.position[keyframe.time] = {}
-            transformations.position[keyframe.time].x = keyframe.data_points[0].x
-            transformations.position[keyframe.time].y = keyframe.data_points[0].y
-            transformations.position[keyframe.time].z = keyframe.data_points[0].z
-        }
-    }
-    if (type.scale) {
-        transformations.scale = {}
-        for (i=0;i<animation.scale.length;i++) {
-            var keyframe = animation.scale[i]
-            transformations.scale[keyframe.time] = {}
-            transformations.scale[keyframe.time].x = keyframe.data_points[0].x
-            transformations.scale[keyframe.time].y = keyframe.data_points[0].y
-            transformations.scale[keyframe.time].z = keyframe.data_points[0].z
+            transformations.position[i] = {}
+            transformations.position[i].x = keyframe.data_points[0].x
+            transformations.position[i].y = keyframe.data_points[0].y
+            transformations.position[i].z = keyframe.data_points[0].z
+            transformations.position[i].time = keyframe.time
         }
     }
     if (type.rotation) {
-        transformations.rotation = {}
+        transformations.rotation = []
         for (i=0;i<animation.rotation.length;i++) {
             var keyframe = animation.rotation[i]
-            transformations.rotation[keyframe.time] = {}
-            transformations.rotation[keyframe.time].x = keyframe.data_points[0].x
-            transformations.rotation[keyframe.time].y = keyframe.data_points[0].y
-            transformations.rotation[keyframe.time].z = keyframe.data_points[0].z
+            transformations.rotation[i] = {}
+            transformations.rotation[i].x = keyframe.data_points[0].x
+            transformations.rotation[i].y = keyframe.data_points[0].y
+            transformations.rotation[i].z = keyframe.data_points[0].z
+            transformations.rotation[i].time = keyframe.time
+        }
+    }
+    if (type.scale) {
+        transformations.scale = []
+        for (i=0;i<animation.scale.length;i++) {
+            var keyframe = animation.scale[i]
+            transformations.scale[i] = {}
+            transformations.scale[i].x = keyframe.data_points[0].x
+            transformations.scale[i].y = keyframe.data_points[0].y
+            transformations.scale[i].z = keyframe.data_points[0].z
+            transformations.scale[i].time = keyframe.time
         }
     }
     console.log(transformations)
@@ -404,6 +408,7 @@ function multiplyMatrices(A, B) {
 }
 
 function debug() {
+    console.log(getModelStructure() )
     convertAnimations()
 }
 
@@ -467,44 +472,6 @@ No generative artificial intelligence or machine learning models were used in th
         button.delete()
     }
 })
-
-/*function exportProject() {
-
-    var cubes = Blockbench.Cube.all
-    let doubleSpace = `  `
-    let quadrupleSpace = `    `
-    let quadLine = `\n    `
-    let sixLine = quadLine + doubleSpace
-    let newLine = `\n`
-    var data = `type: EMPTY
-entityType: MINECART
-attachments:`
-    for (let i = 0; i < cubes.length; i++) {
-        var textureName = getTextureNameFromUUID(cubes[i].faces.down.texture)
-        var newCube = convertCube(cubes[i])
-        data = data + `\n  ${i}:
-    type: ITEM
-    item:
-      ==: org.bukkit.inventory.ItemStack
-      v: 4189
-      type: ${textureName}
-    position:
-      transform: DISPLAY_HEAD
-      posX: ${newCube.PosX}
-      posY: ${newCube.PosY}
-      posZ: ${newCube.PosZ}
-      rotX: ${newCube.RotX}
-      rotY: ${newCube.RotY}
-      rotZ: ${newCube.RotZ}
-      sizeX: ${newCube.sizeX}
-      sizeY: ${newCube.sizeY}
-      sizeZ: ${newCube.sizeZ}`
-    }
-    data = data + `\neditor:
-  selectedIndex: 0\nposition: {}`
-  post(data)
-}
-*/
 
 function convertCube(cube) {
     PosOriginal = [(cube.from[0] + cube.to[0]) / 2, (cube.from[1] + cube.to[1]) / 2, (cube.from[2] + cube.to[2]) / 2]
