@@ -3295,7 +3295,7 @@ ${cn.comment}` : item.comment;
   }
 
   // src/main.js
-  var version = "0.2.1";
+  var version = "0.2.2";
   var button;
   var addTextureTC;
   var getTextureName;
@@ -3457,15 +3457,84 @@ ${cn.comment}` : item.comment;
     textureName = textureName.replace(/^[^:]*:/, "").toUpperCase();
     return textureName;
   }
+  function convertAnimations() {
+    animations = getAnimations();
+    for (i = 0; i < animations.length; i++) {
+      convertAnimation(animations[i]);
+    }
+  }
+  function convertAnimation(animation) {
+    var type = {
+      position: false,
+      scale: false,
+      rotation: false
+    };
+    if (animation.position.length > 0) {
+      type.position = true;
+    }
+    if (animation.scale.length > 0) {
+      type.scale = true;
+    }
+    if (animation.rotation.length > 0) {
+      rotation = true;
+    }
+    var transformations = {};
+    if (type.position) {
+      transformations.position = {};
+      for (i = 0; i < animation.position.length; i++) {
+        var keyframe = animation.position[i];
+        transformations.position[keyframe.time] = {};
+        transformations.position[keyframe.time].x = keyframe.data_points[0].x;
+        transformations.position[keyframe.time].y = keyframe.data_points[0].y;
+        transformations.position[keyframe.time].z = keyframe.data_points[0].z;
+      }
+    }
+    if (type.scale) {
+      transformations.scale = {};
+      for (i = 0; i < animation.scale.length; i++) {
+        var keyframe = animation.scale[i];
+        transformations.scale[keyframe.time] = {};
+        transformations.scale[keyframe.time].x = keyframe.data_points[0].x;
+        transformations.scale[keyframe.time].y = keyframe.data_points[0].y;
+        transformations.scale[keyframe.time].z = keyframe.data_points[0].z;
+      }
+    }
+    if (type.rotation) {
+      transformations.rotation = {};
+      for (i = 0; i < animation.rotation.length; i++) {
+        var keyframe = animation.rotation[i];
+        transformations.rotation[keyframe.time] = {};
+        transformations.rotation[keyframe.time].x = keyframe.data_points[0].x;
+        transformations.rotation[keyframe.time].y = keyframe.data_points[0].y;
+        transformations.rotation[keyframe.time].z = keyframe.data_points[0].z;
+      }
+    }
+    console.log(transformations);
+  }
+  function getAnimations() {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    var animators = Blockbench.ModelProject.all[0].animations[0].animators;
+    var animations2 = [];
+    targetObject = animators;
+    uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key));
+    uuidObjects = Object.fromEntries(uuidEntries);
+    for (i = 0; i < uuidEntries.length; i++) {
+      if (uuidEntries[i][1].position.length > 0 || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
+        animations2.push(uuidEntries[i][1]);
+      }
+    }
+    console.log("Logging animations now!");
+    console.log(animations2);
+    return animations2;
+  }
   function post(data2) {
     Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings");
     headers = new Headers();
     headers.append("Content-Type", "text/plain");
-    raw = data2;
     requestOptions = {
       method: "POST",
       headers,
-      body: raw,
+      body: data2,
       redirect: "follow"
     };
     fetch("https://paste.traincarts.net/documents", requestOptions).then((response) => response.text()).then((result2) => paste(result2)).catch((error) => console.error(error));
@@ -3491,7 +3560,7 @@ ${cn.comment}` : item.comment;
     }).show();
   }
   function debug() {
-    console.log(translate([0, 0, 0], [16, 16, 16], [8, 8, 8], [90, 0, 0]));
+    convertAnimations();
   }
   Plugin.register("purplecart_designer", {
     title: "PurpleCart Designer",
@@ -3549,8 +3618,10 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
-${version}
-No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself`);
+
+You are running version ${version}
+
+No generative artificial intelligence or machine learning models were used in the making of this code, as I am fully capable of writing broken code all by myself`);
     },
     onunload() {
       button.delete();

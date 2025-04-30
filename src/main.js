@@ -1,15 +1,15 @@
-/*
-You are using a BETA build of PurpleCart Designer- bugs are expected and features will be missing
+//*
+//You are using a BETA build of PurpleCart Designer- bugs are expected and features will be missing
 
-PurpleCart Designer is property of OttersMeep
-Do not share, reupload, distribute, or otherwise disseminate this script without prior permission (contact me @ottersmeep on Discord)
+//PurpleCart Designer is property of OttersMeep
+//Do not share, reupload, distribute, or otherwise disseminate this script without prior permission (contact me @ottersmeep on Discord)
 
-Created by OttersMeep for PurpleTrain
-minecartrapidtransit.net
+//Created by OttersMeep for PurpleTrain
+//minecartrapidtransit.net
 
-No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
-*/
-export const version = "0.2.1"
+//No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
+
+export const version = "0.2.2"
 let button
 let addTextureTC
 let textureForm
@@ -27,14 +27,14 @@ function verCheck(NwVersion) {
         </div>
     `
 
-    // Show a custom HTML dialog
-    new Dialog({
-        id: 'versionDialog',
-        title: 'New Version Available',
-        lines: [content],
-        width: 800,
-        buttons: ['Close']
-    }).show()
+        // Show a custom HTML dialog
+        new Dialog({
+            id: 'versionDialog',
+            title: 'New Version Available',
+            lines: [content],
+            width: 800,
+            buttons: ['Close']
+        }).show()
     }
 }
 
@@ -50,7 +50,7 @@ function checkVersion() {
     }
 
     fetch("https://api.github.com/repos/OttersMeep/PurpleCartDesigner/releases/latest")
-    .then(response => {
+        .then(response => {
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             return response.json(); // call the function here
         })
@@ -162,8 +162,6 @@ function translate(from1, to1, origin1, rotation1) {
     return (adjustedCenter)
 }
 
-
-
 function walkStructure(children, outObject) {
     children.forEach((child, index) => {
         if (child.type == "group") {
@@ -211,11 +209,6 @@ function walkStructure(children, outObject) {
         }
     });
 }
-
-
-
-
-
 
 function getModelStructure() {
     function processGroup(group) {
@@ -266,17 +259,91 @@ function getTextureNameFromUUID(inputUUID) {
 
 }
 
+function convertAnimations() {
+    animations = getAnimations()
+    for (i=0;i<animations.length;i++) {
+    convertAnimation(animations[i])
+    }
+}
+
+function convertAnimation(animation) {
+    // Identify the type. This could theoretically be streamlined but I don't feel like it bc it would make the code harder to read for me :3
+    var type = {
+        position: false,
+        scale: false,
+        rotation: false
+    }
+    if (animation.position.length > 0) {
+        type.position = true
+    }
+    if (animation.scale.length > 0) {
+        type.scale = true
+    }
+    if (animation.rotation.length > 0) {
+        rotation = true
+    }
+    var transformations = {}
+    // Now let's actually do the thing this function is going to do
+    if (type.position) {
+        transformations.position = {}
+        for (i=0;i<animation.position.length;i++) {
+            var keyframe = animation.position[i]
+            transformations.position[keyframe.time] = {}
+            transformations.position[keyframe.time].x = keyframe.data_points[0].x
+            transformations.position[keyframe.time].y = keyframe.data_points[0].y
+            transformations.position[keyframe.time].z = keyframe.data_points[0].z
+        }
+    }
+    if (type.scale) {
+        transformations.scale = {}
+        for (i=0;i<animation.scale.length;i++) {
+            var keyframe = animation.scale[i]
+            transformations.scale[keyframe.time] = {}
+            transformations.scale[keyframe.time].x = keyframe.data_points[0].x
+            transformations.scale[keyframe.time].y = keyframe.data_points[0].y
+            transformations.scale[keyframe.time].z = keyframe.data_points[0].z
+        }
+    }
+    if (type.rotation) {
+        transformations.rotation = {}
+        for (i=0;i<animation.rotation.length;i++) {
+            var keyframe = animation.rotation[i]
+            transformations.rotation[keyframe.time] = {}
+            transformations.rotation[keyframe.time].x = keyframe.data_points[0].x
+            transformations.rotation[keyframe.time].y = keyframe.data_points[0].y
+            transformations.rotation[keyframe.time].z = keyframe.data_points[0].z
+        }
+    }
+    console.log(transformations)
+}
+
+
+function getAnimations() {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    var animators = Blockbench.ModelProject.all[0].animations[0].animators
+    var animations = []
+    targetObject = animators;
+    uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key));
+    uuidObjects = Object.fromEntries(uuidEntries);
+    for (i = 0; i < uuidEntries.length; i++) {
+        if (uuidEntries[i][1].position.length > 0  || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
+            animations.push(uuidEntries[i][1])
+        }
+    }
+    console.log("Logging animations now!")
+    console.log(animations)
+    return animations
+}
+
 function post(data) {
     Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings")
     headers = new Headers()
     headers.append("Content-Type", "text/plain")
 
-    raw = data
-
     requestOptions = {
         method: "POST",
         headers: headers,
-        body: raw,
+        body: data,
         redirect: "follow"
     }
 
@@ -313,7 +380,6 @@ function paste(data) {
     }).show()
 }
 
-
 function multiplyMatrices(A, B) {
     rowsA = A.length
     colsA = A[0].length
@@ -338,7 +404,7 @@ function multiplyMatrices(A, B) {
 }
 
 function debug() {
-    console.log(translate([0,0,0], [16,16,16], [8,8,8], [90,0,0]));
+    convertAnimations()
 }
 
 function addTexture(text) {
@@ -347,6 +413,7 @@ function addTexture(text) {
     texture.edit()
     texture.add()
 }
+
 Plugin.register('purplecart_designer', {
     title: 'PurpleCart Designer',
     author: 'OttersMeep',
@@ -391,8 +458,10 @@ Do not share, reupload, distribute, or otherwise disseminate this script without
 
 Created by OttersMeep for PurpleTrain
 minecartrapidtransit.net
-${version}
-No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself`)
+
+You are running version ${version}
+
+No generative artificial intelligence or machine learning models were used in the making of this code, as I am fully capable of writing broken code all by myself`)
     },
     onunload() {
         button.delete()
@@ -476,3 +545,4 @@ function promptTexture() {
 
 
 }
+
