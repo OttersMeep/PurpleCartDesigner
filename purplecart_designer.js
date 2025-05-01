@@ -3461,7 +3461,7 @@ ${cn.comment}` : item.comment;
     animations = getAnimations();
     fixed_animations = [];
     for (i = 0; i < animations.length; i++) {
-      fixed_animations.push(convertAnimation(animations[i]));
+      convertAnimation(animations[i]);
     }
   }
   function convertAnimation(animation) {

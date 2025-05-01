@@ -263,7 +263,7 @@ function convertAnimations() {
     animations = getAnimations()
     fixed_animations = []
     for (i=0;i<animations.length;i++) {
-    fixed_animations.push(convertAnimation(animations[i]))
+    convertAnimation(animations[i])
     }
 }
 
