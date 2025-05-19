@@ -9,7 +9,7 @@
 
 //No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 
-export const version = "0.2.2"
+export const version = "0.2.1hotfix"
 let button
 let addTextureTC
 let textureForm
@@ -165,11 +165,24 @@ function translate(from1, to1, origin1, rotation1) {
 function walkStructure(children, outObject) {
     children.forEach((child, index) => {
         if (child.type == "group") {
+            console.log(child)
+            const groupOrigin = child.origin || [0, 0, 0];
+            const groupRotation = child.rotation || [0, 0, 0];
             const groupAttachment = {
                 type: "EMPTY",
+                // Optionally add an item here if you want, as in your sample
+                position: {
+                    transform: "DISPLAY_HEAD",
+                    posX: groupOrigin[0],
+                    posY: groupOrigin[1],
+                    posZ: groupOrigin[2],
+                    rotX: groupRotation[0],
+                    rotY: groupRotation[1],
+                    rotZ: groupRotation[2],
+                },
                 entityType: "MINECART",
-                attachments: {}, // Initialize as object for nested attachments
-                names: Array.isArray(child.name) ? child.name : [child.name] // Ensure names is always an array
+                names: Array.isArray(child.name) ? child.name : [child.name],
+                attachments: {}
             };
 
             // Recurse into the group’s children, passing the nested attachments object
@@ -212,10 +225,13 @@ function walkStructure(children, outObject) {
 
 function getModelStructure() {
     function processGroup(group) {
+        console.log(group)
         return {
             type: "group",
             name: group.name,
             uuid: group.uuid,
+            origin: group.origin,
+            rotation: group.rotation,
             children: group.children.map(child => {
                 if (child instanceof Group) {
                     return processGroup(child);
