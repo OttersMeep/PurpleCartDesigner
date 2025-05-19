@@ -14,7 +14,7 @@ let button
 let addTextureTC
 let textureForm
 let getTextureName
-import * as YAML from 'yaml';
+import * as YAML from 'yaml'
 
 
 function verCheck(NwVersion) {
@@ -51,89 +51,89 @@ function checkVersion() {
 
     fetch("https://api.github.com/repos/OttersMeep/PurpleCartDesigner/releases/latest")
         .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json(); // call the function here
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
+            return response.json() // call the function here
         })
         .then(data => {
-            verCheck(data); // you'll see the real response here
+            verCheck(data) // you'll see the real response here
         })
         .catch(error => {
-            console.error("Error fetching version:", error);
-        });
+            console.error("Error fetching version:", error)
+        })
 }
 
 function fixHyphenatedYAMLArray(yamlString) {
-    const lines = yamlString.split('\n');
-    const newLines = [];
-    const attachStack = [];
-    let procNames = false;
+    const lines = yamlString.split('\n')
+    const newLines = []
+    const attachStack = []
+    let procNames = false
 
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trim = line.trimStart();
-        const indent = line.length - trim.length;
+        const line = lines[i]
+        const trim = line.trimStart()
+        const indent = line.length - trim.length
 
         if (trim.startsWith('attachments:')) {
-            newLines.push(line);
-            attachStack.push({ indent: indent + 2, index: 0 });
+            newLines.push(line)
+            attachStack.push({ indent: indent + 2, index: 0 })
         } else if (attachStack.length) {
-            const current = attachStack[attachStack.length - 1];
+            const current = attachStack[attachStack.length - 1]
             if (indent === current.indent && trim.startsWith('- type:')) {
-                procNames = false;
-                newLines.push(`${' '.repeat(indent - 2)}${current.index}:`);
-                line.split('\n').forEach(l => newLines.push(`${' '.repeat(indent + 2)}${l.trimStart()}`));
-                current.index++;
+                procNames = false
+                newLines.push(`${' '.repeat(indent - 2)}${current.index}:`)
+                line.split('\n').forEach(l => newLines.push(`${' '.repeat(indent + 2)}${l.trimStart()}`))
+                current.index++
             } else if (indent === current.indent && trim.startsWith('names:')) {
-                newLines.push(`${' '.repeat(indent)}names:`);
-                procNames = true;
+                newLines.push(`${' '.repeat(indent)}names:`)
+                procNames = true
             } else if (procNames && indent === current.indent + 2) {
-                newLines.push(`${' '.repeat(indent)}- ${trim}`);
+                newLines.push(`${' '.repeat(indent)}- ${trim}`)
             } else if (indent > current.indent) {
-                newLines.push(line);
+                newLines.push(line)
             } else if (indent < current.indent) {
-                attachStack.pop();
-                procNames = false;
-                newLines.push(line);
+                attachStack.pop()
+                procNames = false
+                newLines.push(line)
             } else {
-                newLines.push(line);
-                procNames = false;
+                newLines.push(line)
+                procNames = false
             }
         } else {
-            newLines.push(line);
+            newLines.push(line)
         }
     }
-    return newLines.join('\n');
+    return newLines.join('\n')
 }
 
 function exportProject() {
-    let structure = getModelStructure();
+    let structure = getModelStructure()
     let output = {
         type: "EMPTY",
         entityType: "MINECART",
         attachments: {} // Initialize as object
-    };
+    }
 
-    walkStructure(structure, output.attachments);
+    walkStructure(structure, output.attachments)
 
     // Add final metadata
     output.editor = {
         selectedIndex: 0
-    };
-    output.position = {};
-    output.names = Array.isArray(output.names) ? output.names : (output.names ? [output.names] : []); // Ensure top-level names is an array
-    const regex = /"(\d+)":/g;
-    let data = YAML.stringify(output).replace(regex, "$1:");
-    post(data);
+    }
+    output.position = {}
+    output.names = Array.isArray(output.names) ? output.names : (output.names ? [output.names] : []) // Ensure top-level names is an array
+    const regex = /"(\d+)":/g
+    let data = YAML.stringify(output).replace(regex, "$1:")
+    post(data)
 }
 
 function roundTo(n, digits) {
     if (digits === undefined) {
-        digits = 0;
+        digits = 0
     }
 
-    var multiplicator = Math.pow(10, digits);
-    n = parseFloat((n * multiplicator).toFixed(11));
-    return Math.round(n) / multiplicator;
+    var multiplicator = Math.pow(10, digits)
+    n = parseFloat((n * multiplicator).toFixed(11))
+    return Math.round(n) / multiplicator
 }
 
 function translate(from1, to1, origin1, rotation1) {
@@ -166,8 +166,8 @@ function walkStructure(children, outObject) {
     children.forEach((child, index) => {
         if (child.type == "group") {
             console.log(child)
-            const groupOrigin = child.origin || [0, 0, 0];
-            const groupRotation = child.rotation || [0, 0, 0];
+            const groupOrigin = child.origin || [0, 0, 0]
+            const groupRotation = child.rotation || [0, 0, 0]
             const groupAttachment = {
                 type: "EMPTY",
                 // Optionally add an item here if you want, as in your sample
@@ -183,17 +183,17 @@ function walkStructure(children, outObject) {
                 entityType: "MINECART",
                 names: Array.isArray(child.name) ? child.name : [child.name],
                 attachments: {}
-            };
+            }
 
             // Recurse into the group’s children, passing the nested attachments object
-            walkStructure(child.children, groupAttachment.attachments);
+            walkStructure(child.children, groupAttachment.attachments)
 
             // Assign the group attachment to the output object with the current index
-            outObject[index] = groupAttachment;
+            outObject[index] = groupAttachment
         } else if (child.type == "cube") {
-            const cube = findCubeByUUID(child.uuid);
-            const textureName = getTextureNameFromUUID(cube.faces.down.texture);
-            const newCube = convertCube(cube);
+            const cube = findCubeByUUID(child.uuid)
+            const textureName = getTextureNameFromUUID(cube.faces.down.texture)
+            const newCube = convertCube(cube)
 
             const itemAttachment = {
                 type: "ITEM",
@@ -215,12 +215,12 @@ function walkStructure(children, outObject) {
                     sizeZ: newCube.sizeZ
                 },
                 names: Array.isArray(child.name) ? child.name : [child.name] // Ensure names is always an array
-            };
+            }
 
             // Assign the item attachment to the output object with the current index
-            outObject[index] = itemAttachment;
+            outObject[index] = itemAttachment
         }
-    });
+    })
 }
 
 function getModelStructure() {
@@ -234,34 +234,34 @@ function getModelStructure() {
             rotation: group.rotation,
             children: group.children.map(child => {
                 if (child instanceof Group) {
-                    return processGroup(child);
+                    return processGroup(child)
                 } else if (child instanceof Cube) {
                     return {
                         type: "cube",
                         name: child.name,
                         uuid: child.uuid
-                    };
+                    }
                 } else {
-                    return null;
+                    return null
                 }
             }).filter(Boolean)
-        };
+        }
     }
 
     var result = Outliner.root.map(rootItem => {
         if (rootItem instanceof Group) {
-            return processGroup(rootItem);
+            return processGroup(rootItem)
         } else if (rootItem instanceof Cube) {
             return {
                 type: "cube",
                 name: rootItem.name,
                 uuid: rootItem.uuid
-            };
+            }
         } else {
-            return null;
+            return null
         }
-    }).filter(Boolean);
-    return result;
+    }).filter(Boolean)
+    return result
 }
 
 function getTextureNameFromUUID(inputUUID) {
@@ -339,12 +339,12 @@ function convertAnimation(animation) {
 
 
 function getAnimations() {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     var animators = Blockbench.ModelProject.all[0].animations[0].animators
     var animations = []
-    targetObject = animators;
-    uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key));
-    uuidObjects = Object.fromEntries(uuidEntries);
+    targetObject = animators
+    uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key))
+    uuidObjects = Object.fromEntries(uuidEntries)
     for (i = 0; i < uuidEntries.length; i++) {
         if (uuidEntries[i][1].position.length > 0  || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
             animations.push(uuidEntries[i][1])
