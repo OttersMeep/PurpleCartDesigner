@@ -3295,7 +3295,7 @@ ${cn.comment}` : item.comment;
   }
 
   // src/main.js
-  var version = "0.2.2";
+  var version = "0.2.1hotfix";
   var button;
   var addTextureTC;
   var getTextureName;
@@ -3372,13 +3372,24 @@ ${cn.comment}` : item.comment;
   function walkStructure(children, outObject) {
     children.forEach((child, index) => {
       if (child.type == "group") {
+        console.log(child);
+        const groupOrigin = child.origin || [0, 0, 0];
+        const groupRotation = child.rotation || [0, 0, 0];
         const groupAttachment = {
           type: "EMPTY",
+          // Optionally add an item here if you want, as in your sample
+          position: {
+            transform: "DISPLAY_HEAD",
+            posX: groupOrigin[0],
+            posY: groupOrigin[1],
+            posZ: groupOrigin[2],
+            rotX: groupRotation[0],
+            rotY: groupRotation[1],
+            rotZ: groupRotation[2]
+          },
           entityType: "MINECART",
-          attachments: {},
-          // Initialize as object for nested attachments
-          names: Array.isArray(child.name) ? child.name : [child.name]
-          // Ensure names is always an array
+          names: Array.isArray(child.name) ? child.name : [child.name],
+          attachments: {}
         };
         walkStructure(child.children, groupAttachment.attachments);
         outObject[index] = groupAttachment;
@@ -3414,10 +3425,13 @@ ${cn.comment}` : item.comment;
   }
   function getModelStructure() {
     function processGroup(group) {
+      console.log(group);
       return {
         type: "group",
         name: group.name,
         uuid: group.uuid,
+        origin: group.origin,
+        rotation: group.rotation,
         children: group.children.map((child) => {
           if (child instanceof Group) {
             return processGroup(child);
