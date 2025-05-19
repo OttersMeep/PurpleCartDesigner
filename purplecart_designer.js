@@ -406,8 +406,7 @@ var plugin = (() => {
     return {
       onAnchor: (source) => {
         aliasObjects.push(source);
-        if (!prevAnchors)
-          prevAnchors = anchorNames(doc);
+        prevAnchors != null ? prevAnchors : prevAnchors = anchorNames(doc);
         const anchor = findNewAnchor(prefix, prevAnchors);
         prevAnchors.add(anchor);
         return anchor;
@@ -547,23 +546,35 @@ var plugin = (() => {
      * Resolve the value of this alias within `doc`, finding the last
      * instance of the `source` anchor before this node.
      */
-    resolve(doc) {
+    resolve(doc, ctx) {
+      let nodes;
+      if (ctx == null ? void 0 : ctx.aliasResolveCache) {
+        nodes = ctx.aliasResolveCache;
+      } else {
+        nodes = [];
+        visit(doc, {
+          Node: (_key, node) => {
+            if (isAlias(node) || hasAnchor(node))
+              nodes.push(node);
+          }
+        });
+        if (ctx)
+          ctx.aliasResolveCache = nodes;
+      }
       let found = void 0;
-      visit(doc, {
-        Node: (_key, node) => {
-          if (node === this)
-            return visit.BREAK;
-          if (node.anchor === this.source)
-            found = node;
-        }
-      });
+      for (const node of nodes) {
+        if (node === this)
+          break;
+        if (node.anchor === this.source)
+          found = node;
+      }
       return found;
     }
     toJSON(_arg, ctx) {
       if (!ctx)
         return { source: this.source };
       const { anchors, doc, maxAliasCount } = ctx;
-      const source = this.resolve(doc);
+      const source = this.resolve(doc, ctx);
       if (!source) {
         const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
         throw new ReferenceError(msg);
@@ -660,7 +671,7 @@ var plugin = (() => {
     });
   }
   function createNode(value, tagName, ctx) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     if (isDocument(value))
       value = value.contents;
     if (isNode(value))
@@ -678,8 +689,7 @@ var plugin = (() => {
     if (aliasDuplicateObjects && value && typeof value === "object") {
       ref = sourceObjects.get(value);
       if (ref) {
-        if (!ref.anchor)
-          ref.anchor = onAnchor(value);
+        (_c = ref.anchor) != null ? _c : ref.anchor = onAnchor(value);
         return new Alias(ref.anchor);
       } else {
         ref = { anchor: null, node: null };
@@ -705,7 +715,7 @@ var plugin = (() => {
       onTagObj(tagObj);
       delete ctx.onTagObj;
     }
-    const node = (tagObj == null ? void 0 : tagObj.createNode) ? tagObj.createNode(ctx.schema, value, ctx) : typeof ((_c = tagObj == null ? void 0 : tagObj.nodeClass) == null ? void 0 : _c.from) === "function" ? tagObj.nodeClass.from(ctx.schema, value, ctx) : new Scalar(value);
+    const node = (tagObj == null ? void 0 : tagObj.createNode) ? tagObj.createNode(ctx.schema, value, ctx) : typeof ((_d = tagObj == null ? void 0 : tagObj.nodeClass) == null ? void 0 : _d.from) === "function" ? tagObj.nodeClass.from(ctx.schema, value, ctx) : new Scalar(value);
     if (tagName)
       node.tag = tagName;
     else if (!tagObj.default)
@@ -1200,7 +1210,7 @@ ${indent}${start}${value}${end}`;
     if (implicitKey && value.includes("\n") || inFlow && /[[\]{},]/.test(value)) {
       return quotedString(value, ctx);
     }
-    if (!value || /^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
+    if (/^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
       return implicitKey || inFlow || !value.includes("\n") ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
     }
     if (!implicitKey && !inFlow && type !== Scalar.PLAIN && value.includes("\n")) {
@@ -1329,12 +1339,13 @@ ${indent}`);
       tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
     }
     if (!tagObj) {
-      const name = (_d = (_c = obj == null ? void 0 : obj.constructor) == null ? void 0 : _c.name) != null ? _d : typeof obj;
+      const name = (_d = (_c = obj == null ? void 0 : obj.constructor) == null ? void 0 : _c.name) != null ? _d : obj === null ? "null" : typeof obj;
       throw new Error(`Tag not resolved for ${name} value`);
     }
     return tagObj;
   }
   function stringifyProps(node, tagObj, { anchors, doc }) {
+    var _a;
     if (!doc.directives)
       return "";
     const props = [];
@@ -1343,7 +1354,7 @@ ${indent}`);
       anchors.add(anchor);
       props.push(`&${anchor}`);
     }
-    const tag = node.tag ? node.tag : tagObj.default ? null : tagObj.tag;
+    const tag = (_a = node.tag) != null ? _a : tagObj.default ? null : tagObj.tag;
     if (tag)
       props.push(doc.directives.tagString(tag));
     return props.join(" ");
@@ -1367,8 +1378,7 @@ ${indent}`);
     }
     let tagObj = void 0;
     const node = isNode(item) ? item : ctx.doc.createNode(item, { onTagObj: (o) => tagObj = o });
-    if (!tagObj)
-      tagObj = getTagObject(ctx.doc.schema.tags, node);
+    tagObj != null ? tagObj : tagObj = getTagObject(ctx.doc.schema.tags, node);
     const props = stringifyProps(node, tagObj, ctx);
     if (props.length > 0)
       ctx.indentAtStart = ((_b = ctx.indentAtStart) != null ? _b : 0) + props.length + 1;
@@ -2285,8 +2295,7 @@ ${indent}${end}`;
       } else {
         throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
       }
-      if (!type)
-        type = Scalar.BLOCK_LITERAL;
+      type != null ? type : type = Scalar.BLOCK_LITERAL;
       if (type !== Scalar.QUOTE_DOUBLE) {
         const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
         const n = Math.ceil(str.length / lineWidth);
@@ -3295,7 +3304,7 @@ ${cn.comment}` : item.comment;
   }
 
   // src/main.js
-  var version = "0.2.1hotfix";
+  var version = "0.2.1hotfx";
   var button;
   var addTextureTC;
   var getTextureName;

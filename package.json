@@ -19,6 +19,6 @@
   "homepage": "https://github.com/OttersMeep/PurpleCartDesigner#readme",
   "dependencies": {
     "esbuild": "^0.25.2",
-    "yaml": "^2.7.1"
+    "yaml": "^2.8.0"
   }
 }
