@@ -9,7 +9,7 @@
 
 //No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 
-export const version = "0.2.1hotfix"
+export const version = "0.2.1hotfx"
 let button
 let addTextureTC
 let textureForm
