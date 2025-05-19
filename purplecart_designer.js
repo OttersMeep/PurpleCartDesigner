@@ -938,12 +938,12 @@ var plugin = (() => {
               ch = text[i2 += 1];
               overflow = true;
             }
-            const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
-            if (escapedFolds[j])
+            const j2 = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
+            if (escapedFolds[j2])
               return text;
-            folds.push(j);
-            escapedFolds[j] = true;
-            end = j + endStep;
+            folds.push(j2);
+            escapedFolds[j2] = true;
+            end = j2 + endStep;
             split = void 0;
           } else {
             overflow = true;
@@ -3381,7 +3381,6 @@ ${cn.comment}` : item.comment;
   function walkStructure(children, outObject) {
     children.forEach((child, index) => {
       if (child.type == "group") {
-        console.log(child);
         const groupOrigin = child.origin || [0, 0, 0];
         const groupRotation = child.rotation || [0, 0, 0];
         const groupAttachment = {
@@ -3434,7 +3433,6 @@ ${cn.comment}` : item.comment;
   }
   function getModelStructure() {
     function processGroup(group) {
-      console.log(group);
       return {
         type: "group",
         name: group.name,
@@ -3502,41 +3500,28 @@ ${cn.comment}` : item.comment;
     if (animation.rotation.length > 0) {
       rotation = true;
     }
-    var transformations = {};
-    if (type.position) {
-      transformations.position = [];
-      for (i = 0; i < animation.position.length; i++) {
-        var keyframe = animation.position[i];
-        transformations.position[i] = {};
-        transformations.position[i].x = keyframe.data_points[0].x;
-        transformations.position[i].y = keyframe.data_points[0].y;
-        transformations.position[i].z = keyframe.data_points[0].z;
-        transformations.position[i].time = keyframe.time;
+    var frames = {};
+    perTransformKeyframes = {};
+    frames.name = animation.animation.name;
+    for (m = 0; m < 3; m++) {
+      var k = [animation.position, animation.scale, animation.rotation][m];
+      perTransformKeyframes[m] = [];
+      for (j = 0; j < k.length; j++) {
+        perTransformKeyframes[m].push(k[j].time);
+      }
+      if ([type.position, type.scale, type.rotation][m]) {
+        for (i = 0; i < k.length; i++) {
+          if (!Object.keys(frames).includes(k.time)) {
+            frames[k[i].time] = {};
+          }
+        }
       }
     }
-    if (type.rotation) {
-      transformations.rotation = [];
-      for (i = 0; i < animation.rotation.length; i++) {
-        var keyframe = animation.rotation[i];
-        transformations.rotation[i] = {};
-        transformations.rotation[i].x = keyframe.data_points[0].x;
-        transformations.rotation[i].y = keyframe.data_points[0].y;
-        transformations.rotation[i].z = keyframe.data_points[0].z;
-        transformations.rotation[i].time = keyframe.time;
-      }
+    for (i = 0; i < 3; i++) {
+      var anim = [animation.position, animation.scale, animation.rotation][i];
     }
-    if (type.scale) {
-      transformations.scale = [];
-      for (i = 0; i < animation.scale.length; i++) {
-        var keyframe = animation.scale[i];
-        transformations.scale[i] = {};
-        transformations.scale[i].x = keyframe.data_points[0].x;
-        transformations.scale[i].y = keyframe.data_points[0].y;
-        transformations.scale[i].z = keyframe.data_points[0].z;
-        transformations.scale[i].time = keyframe.time;
-      }
-    }
-    console.log(transformations);
+    console.log(frames);
+    console.log(perTransformKeyframes);
   }
   function getAnimations() {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -3575,7 +3560,7 @@ ${cn.comment}` : item.comment;
             <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
             <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
             <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
-            TrainCarts is developed by BergerHealer completely independently of this project.</p>
+            The TrainCarts plugin is developed by BergerHealer completely independently of this project.</p>
         </div>
     `;
     new Dialog({
