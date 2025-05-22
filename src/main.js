@@ -9,7 +9,7 @@
 
 //No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 
-export const version = "0.2.1hotfx"
+export const version = "0.2.1hotfix2becauseapparentlyikeepaddingbugs"
 let button
 let addTextureTC
 let textureForm
@@ -166,16 +166,16 @@ function translate(pos, origin, rotation) {
 function walkStructure(children, outObject) {
     children.forEach((child, index) => {
         if (child.type == "group") {
-            const groupOrigin = child.origin || [0, 0, 0]
+            console.log(child)
             const groupRotation = child.rotation || [0, 0, 0]
             const groupAttachment = {
                 type: "EMPTY",
                 // Optionally add an item here if you want, as in your sample
                 position: {
                     transform: "DISPLAY_HEAD",
-                    posX: groupOrigin[0],
-                    posY: groupOrigin[1],
-                    posZ: groupOrigin[2],
+                    posX: 0,
+                    posY: 0,
+                    posZ: 0,
                     rotX: groupRotation[0],
                     rotY: groupRotation[1],
                     rotZ: groupRotation[2],
@@ -296,7 +296,7 @@ function convertAnimation(animation) {
         type.scale = true
     }
     if (animation.rotation.length > 0) {
-        rotation = true
+        type.rotation = true
     }
 
     var frames = {
@@ -306,23 +306,37 @@ function convertAnimation(animation) {
     // Now let's actually do the thing this function is going to do
     for (m = 0; m < 3; m++) {
         var k = [animation.position, animation.scale, animation.rotation][m]
-        perTransformKeyframes[m] =[]
-        for (j=0;j<k.length;j++) {
+        perTransformKeyframes[m] = []
+        for (j = 0; j < k.length; j++) {
             perTransformKeyframes[m].push(k[j].time)
         }
         if ([type.position, type.scale, type.rotation][m]) {
             for (i = 0; i < k.length; i++) {
                 if (!Object.keys(frames).includes(k[i].time)) {
+                    console.log(k[i].time)
+                    console.log(Object.keys(frames))
                     frames[k[i].time] = {}
                 }
                 if (perTransformKeyframes[m].includes(k[i].time)) {
-
+                    data = k[i].data_points[0]
+                    values = [data.x, data.y, data.z]
+                    if (m == 0) {
+                        // Position
+                        frames[k[i].time].pos = values
+                    }
+                    if (m == 1) {
+                        // Scale
+                        frames[k[i].time].scale = values
+                    }
+                    if (m == 2) {
+                        // Rotation
+                        frames[k[i].time].rot = values
+                    }
                 }
             }
         }
     }
     console.log(frames)
-    console.log(perTransformKeyframes)
     /*    if (type.position) {
             transformations.position = []
             for (i=0;i<animation.position.length;i++) {
@@ -429,8 +443,11 @@ function multiplyMatrices(A, B) {
 }
 
 function debug() {
+    console.log(getPos(0))
+    /*
     console.log(getModelStructure())
     convertAnimations()
+    */
 }
 
 function addTexture(text) {
