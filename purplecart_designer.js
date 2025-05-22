@@ -938,12 +938,12 @@ var plugin = (() => {
               ch = text[i2 += 1];
               overflow = true;
             }
-            const j = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
-            if (escapedFolds[j])
+            const j2 = i2 > escEnd + 1 ? i2 - 2 : escStart - 1;
+            if (escapedFolds[j2])
               return text;
-            folds.push(j);
-            escapedFolds[j] = true;
-            end = j + endStep;
+            folds.push(j2);
+            escapedFolds[j2] = true;
+            end = j2 + endStep;
             split = void 0;
           } else {
             overflow = true;
@@ -2149,7 +2149,7 @@ ${indent}${end}`;
 
   // node_modules/yaml/browser/dist/schema/core/int.js
   var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
-  var intResolve = (str, offset2, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset2), radix);
+  var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
   function intStringify(node, radix, prefix) {
     const { value } = node;
     if (intIdentify(value) && value >= 0)
@@ -2507,11 +2507,11 @@ ${cn.comment}` : item.comment;
 
   // node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
   var intIdentify3 = (value) => typeof value === "bigint" || Number.isInteger(value);
-  function intResolve2(str, offset2, radix, { intAsBigInt }) {
+  function intResolve2(str, offset, radix, { intAsBigInt }) {
     const sign = str[0];
     if (sign === "-" || sign === "+")
-      offset2 += 1;
-    str = str.substring(offset2).replace(/_/g, "");
+      offset += 1;
+    str = str.substring(offset).replace(/_/g, "");
     if (intAsBigInt) {
       switch (radix) {
         case 2:
@@ -3304,7 +3304,7 @@ ${cn.comment}` : item.comment;
   }
 
   // src/main.js
-  var version = "0.2.1hotfx";
+  var version = "0.2.1hotfix2becauseapparentlyikeepaddingbugs";
   var button;
   var addTextureTC;
   var getTextureName;
@@ -3362,36 +3362,33 @@ ${cn.comment}` : item.comment;
     let data2 = stringify3(output).replace(regex, "$1:");
     post(data2);
   }
-  function translate(from1, to1, origin1, rotation1) {
-    var from = new THREE.Vector3(from1[0], from1[1], from1[2]);
-    var to = new THREE.Vector3(to1[0], to1[1], to1[2]);
-    var origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2]);
+  function translate(pos, origin, rotation) {
+    var position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+    var pivot = new THREE.Vector3(origin[0], origin[1], origin[2]);
     var rotationDeg = new THREE.Euler(
-      THREE.MathUtils.degToRad(rotation1[0]),
-      THREE.MathUtils.degToRad(rotation1[1]),
-      THREE.MathUtils.degToRad(rotation1[2])
+      THREE.MathUtils.degToRad(rotation[0]),
+      THREE.MathUtils.degToRad(rotation[1]),
+      THREE.MathUtils.degToRad(rotation[2])
     );
-    realCenter = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5);
-    offset = new THREE.Vector3().subVectors(realCenter, origin);
-    rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg);
-    rotatedOffset = offset.clone().applyQuaternion(rotationQuat);
-    adjustedCenter = new THREE.Vector3().addVectors(origin, rotatedOffset);
-    return adjustedCenter;
+    var offset = new THREE.Vector3().subVectors(position, pivot);
+    var rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg);
+    var rotatedOffset = offset.clone().applyQuaternion(rotationQuat);
+    var adjustedPosition = new THREE.Vector3().addVectors(pivot, rotatedOffset);
+    return adjustedPosition;
   }
   function walkStructure(children, outObject) {
     children.forEach((child, index) => {
       if (child.type == "group") {
         console.log(child);
-        const groupOrigin = child.origin || [0, 0, 0];
         const groupRotation = child.rotation || [0, 0, 0];
         const groupAttachment = {
           type: "EMPTY",
           // Optionally add an item here if you want, as in your sample
           position: {
             transform: "DISPLAY_HEAD",
-            posX: groupOrigin[0],
-            posY: groupOrigin[1],
-            posZ: groupOrigin[2],
+            posX: 0,
+            posY: 0,
+            posZ: 0,
             rotX: groupRotation[0],
             rotY: groupRotation[1],
             rotZ: groupRotation[2]
@@ -3434,7 +3431,6 @@ ${cn.comment}` : item.comment;
   }
   function getModelStructure() {
     function processGroup(group) {
-      console.log(group);
       return {
         type: "group",
         name: group.name,
@@ -3480,80 +3476,6 @@ ${cn.comment}` : item.comment;
     textureName = textureName.replace(/^[^:]*:/, "").toUpperCase();
     return textureName;
   }
-  function convertAnimations() {
-    animations = getAnimations();
-    fixed_animations = [];
-    for (i = 0; i < animations.length; i++) {
-      convertAnimation(animations[i]);
-    }
-  }
-  function convertAnimation(animation) {
-    var type = {
-      position: false,
-      scale: false,
-      rotation: false
-    };
-    if (animation.position.length > 0) {
-      type.position = true;
-    }
-    if (animation.scale.length > 0) {
-      type.scale = true;
-    }
-    if (animation.rotation.length > 0) {
-      rotation = true;
-    }
-    var transformations = {};
-    if (type.position) {
-      transformations.position = [];
-      for (i = 0; i < animation.position.length; i++) {
-        var keyframe = animation.position[i];
-        transformations.position[i] = {};
-        transformations.position[i].x = keyframe.data_points[0].x;
-        transformations.position[i].y = keyframe.data_points[0].y;
-        transformations.position[i].z = keyframe.data_points[0].z;
-        transformations.position[i].time = keyframe.time;
-      }
-    }
-    if (type.rotation) {
-      transformations.rotation = [];
-      for (i = 0; i < animation.rotation.length; i++) {
-        var keyframe = animation.rotation[i];
-        transformations.rotation[i] = {};
-        transformations.rotation[i].x = keyframe.data_points[0].x;
-        transformations.rotation[i].y = keyframe.data_points[0].y;
-        transformations.rotation[i].z = keyframe.data_points[0].z;
-        transformations.rotation[i].time = keyframe.time;
-      }
-    }
-    if (type.scale) {
-      transformations.scale = [];
-      for (i = 0; i < animation.scale.length; i++) {
-        var keyframe = animation.scale[i];
-        transformations.scale[i] = {};
-        transformations.scale[i].x = keyframe.data_points[0].x;
-        transformations.scale[i].y = keyframe.data_points[0].y;
-        transformations.scale[i].z = keyframe.data_points[0].z;
-        transformations.scale[i].time = keyframe.time;
-      }
-    }
-    console.log(transformations);
-  }
-  function getAnimations() {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    var animators = Blockbench.ModelProject.all[0].animations[0].animators;
-    var animations2 = [];
-    targetObject = animators;
-    uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key));
-    uuidObjects = Object.fromEntries(uuidEntries);
-    for (i = 0; i < uuidEntries.length; i++) {
-      if (uuidEntries[i][1].position.length > 0 || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
-        animations2.push(uuidEntries[i][1]);
-      }
-    }
-    console.log("Logging animations now!");
-    console.log(animations2);
-    return animations2;
-  }
   function post(data2) {
     Blockbench.showQuickMessage("Uploading to the TrainCarts pastebin- this behavior can be toggled off in settings");
     headers = new Headers();
@@ -3575,7 +3497,7 @@ ${cn.comment}` : item.comment;
             <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
             <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
             <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
-            TrainCarts is developed by BergerHealer completely independently of this project.</p>
+            The TrainCarts plugin is developed by BergerHealer completely independently of this project.</p>
         </div>
     `;
     new Dialog({
@@ -3587,8 +3509,7 @@ ${cn.comment}` : item.comment;
     }).show();
   }
   function debug() {
-    console.log(getModelStructure());
-    convertAnimations();
+    console.log(getPos(0));
   }
   Plugin.register("purplecart_designer", {
     title: "PurpleCart Designer",
@@ -3658,7 +3579,7 @@ No generative artificial intelligence or machine learning models were used in th
   function convertCube(cube) {
     PosOriginal = [(cube.from[0] + cube.to[0]) / 2, (cube.from[1] + cube.to[1]) / 2, (cube.from[2] + cube.to[2]) / 2];
     Rot = cube.rotation;
-    Pos = translate(cube.from, cube.to, cube.origin, cube.rotation);
+    Pos = translate(PosOriginal, cube.origin, cube.rotation);
     var newCube = {
       PosX: Pos.x,
       PosY: Pos.y,

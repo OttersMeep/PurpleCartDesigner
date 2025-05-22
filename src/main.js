@@ -9,7 +9,7 @@
 
 //No generative artificial intelligence was used in the making of this code, as I am fully capable of writing broken code all by myself
 
-export const version = "0.2.1hotfx"
+export const version = "0.2.1hotfix2becauseapparentlyikeepaddingbugs"
 let button
 let addTextureTC
 let textureForm
@@ -136,46 +136,46 @@ function roundTo(n, digits) {
     return Math.round(n) / multiplicator
 }
 
-function translate(from1, to1, origin1, rotation1) {
-    var from = new THREE.Vector3(from1[0], from1[1], from1[2])
-    var to = new THREE.Vector3(to1[0], to1[1], to1[2])
-    var origin = new THREE.Vector3(origin1[0], origin1[1], origin1[2])
+function translate(pos, origin, rotation) {
+    // pos: [x, y, z] - the position to transform
+    // origin: [x, y, z] - the pivot/origin point
+    // rotation: [x, y, z] - rotation in degrees
+
+    // Convert arrays to THREE.Vector3
+    var position = new THREE.Vector3(pos[0], pos[1], pos[2])
+    var pivot = new THREE.Vector3(origin[0], origin[1], origin[2])
     var rotationDeg = new THREE.Euler(
-        THREE.MathUtils.degToRad(rotation1[0]),
-        THREE.MathUtils.degToRad(rotation1[1]),
-        THREE.MathUtils.degToRad(rotation1[2])
+        THREE.MathUtils.degToRad(rotation[0]),
+        THREE.MathUtils.degToRad(rotation[1]),
+        THREE.MathUtils.degToRad(rotation[2])
     )
 
-    // Step 1: Compute real center of cube
-    realCenter = new THREE.Vector3().addVectors(from, to).multiplyScalar(0.5)
+    // Step 1: Offset from pivot to position
+    var offset = new THREE.Vector3().subVectors(position, pivot)
 
-    // Step 2: Offset from pivot to real center
-    offset = new THREE.Vector3().subVectors(realCenter, origin)
+    // Step 2: Apply rotation to offset
+    var rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg)
+    var rotatedOffset = offset.clone().applyQuaternion(rotationQuat)
 
-    // Step 3: Apply rotation to offset
-    rotationQuat = new THREE.Quaternion().setFromEuler(rotationDeg)
-    rotatedOffset = offset.clone().applyQuaternion(rotationQuat)
+    // Step 3: Compute adjusted position
+    var adjustedPosition = new THREE.Vector3().addVectors(pivot, rotatedOffset)
 
-    // Step 4: Compute adjusted center (as if rotating around own center)
-    adjustedCenter = new THREE.Vector3().addVectors(origin, rotatedOffset)
-
-    return (adjustedCenter)
+    return adjustedPosition;
 }
 
 function walkStructure(children, outObject) {
     children.forEach((child, index) => {
         if (child.type == "group") {
             console.log(child)
-            const groupOrigin = child.origin || [0, 0, 0]
             const groupRotation = child.rotation || [0, 0, 0]
             const groupAttachment = {
                 type: "EMPTY",
                 // Optionally add an item here if you want, as in your sample
                 position: {
                     transform: "DISPLAY_HEAD",
-                    posX: groupOrigin[0],
-                    posY: groupOrigin[1],
-                    posZ: groupOrigin[2],
+                    posX: 0,
+                    posY: 0,
+                    posZ: 0,
                     rotX: groupRotation[0],
                     rotY: groupRotation[1],
                     rotZ: groupRotation[2],
@@ -225,7 +225,6 @@ function walkStructure(children, outObject) {
 
 function getModelStructure() {
     function processGroup(group) {
-        console.log(group)
         return {
             type: "group",
             name: group.name,
@@ -278,8 +277,8 @@ function getTextureNameFromUUID(inputUUID) {
 function convertAnimations() {
     animations = getAnimations()
     fixed_animations = []
-    for (i=0;i<animations.length;i++) {
-    convertAnimation(animations[i])
+    for (i = 0; i < animations.length; i++) {
+        convertAnimation(animations[i])
     }
 }
 
@@ -297,44 +296,64 @@ function convertAnimation(animation) {
         type.scale = true
     }
     if (animation.rotation.length > 0) {
-        rotation = true
+        type.rotation = true
     }
-    var transformations = {}
+
+    var frames = {
+    }
+    perTransformKeyframes = {}
+    frames.name = animation.animation.name
     // Now let's actually do the thing this function is going to do
-    if (type.position) {
-        transformations.position = []
-        for (i=0;i<animation.position.length;i++) {
-            var keyframe = animation.position[i]
-            transformations.position[i] = {}
-            transformations.position[i].x = keyframe.data_points[0].x
-            transformations.position[i].y = keyframe.data_points[0].y
-            transformations.position[i].z = keyframe.data_points[0].z
-            transformations.position[i].time = keyframe.time
+    for (m = 0; m < 3; m++) {
+        var k = [animation.position, animation.scale, animation.rotation][m]
+        perTransformKeyframes[m] = []
+        for (j = 0; j < k.length; j++) {
+            perTransformKeyframes[m].push(k[j].time)
+        }
+        if ([type.position, type.scale, type.rotation][m]) {
+            for (i = 0; i < k.length; i++) {
+                if (!Object.keys(frames).includes(k[i].time)) {
+                    console.log(k[i].time)
+                    console.log(Object.keys(frames))
+                    frames[k[i].time] = {}
+                }
+                if (perTransformKeyframes[m].includes(k[i].time)) {
+                    data = k[i].data_points[0]
+                    values = [data.x, data.y, data.z]
+                    if (m == 0) {
+                        // Position
+                        frames[k[i].time].pos = values
+                    }
+                    if (m == 1) {
+                        // Scale
+                        frames[k[i].time].scale = values
+                    }
+                    if (m == 2) {
+                        // Rotation
+                        frames[k[i].time].rot = values
+                    }
+                }
+            }
         }
     }
-    if (type.rotation) {
-        transformations.rotation = []
-        for (i=0;i<animation.rotation.length;i++) {
-            var keyframe = animation.rotation[i]
-            transformations.rotation[i] = {}
-            transformations.rotation[i].x = keyframe.data_points[0].x
-            transformations.rotation[i].y = keyframe.data_points[0].y
-            transformations.rotation[i].z = keyframe.data_points[0].z
-            transformations.rotation[i].time = keyframe.time
+    console.log(frames)
+    /*    if (type.position) {
+            transformations.position = []
+            for (i=0;i<animation.position.length;i++) {
+                var keyframe = animation.position[i]
+                transformations.position[i] = {}
+                transformations.position[i].x = keyframe.data_points[0].x
+                transformations.position[i].y = keyframe.data_points[0].y
+                transformations.position[i].z = keyframe.data_points[0].z
+                transformations.position[i].time = keyframe.time
+                if (!keyframes.includes(keyframe.time)) {
+                    keyframes.push(keyframe.time)
+                }
+            }
         }
-    }
-    if (type.scale) {
-        transformations.scale = []
-        for (i=0;i<animation.scale.length;i++) {
-            var keyframe = animation.scale[i]
-            transformations.scale[i] = {}
-            transformations.scale[i].x = keyframe.data_points[0].x
-            transformations.scale[i].y = keyframe.data_points[0].y
-            transformations.scale[i].z = keyframe.data_points[0].z
-            transformations.scale[i].time = keyframe.time
-        }
-    }
-    console.log(transformations)
+        keyframes.sort()
+        console.log(transformations)*/
+
 }
 
 
@@ -346,7 +365,7 @@ function getAnimations() {
     uuidEntries = Object.entries(targetObject).filter(([key, value]) => uuidRegex.test(key))
     uuidObjects = Object.fromEntries(uuidEntries)
     for (i = 0; i < uuidEntries.length; i++) {
-        if (uuidEntries[i][1].position.length > 0  || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
+        if (uuidEntries[i][1].position.length > 0 || uuidEntries[i][1].rotation.length > 0 || uuidEntries[i][1].scale.length > 0) {
             animations.push(uuidEntries[i][1])
         }
     }
@@ -386,7 +405,7 @@ function paste(data) {
             <img src="https://i.postimg.cc/6pj3g30W/nQ6wDjl.png" alt="TrainCarts" style="max-width: 100%; height: auto; margin-top: 10px;" />
             <p>Your model has been uploaded to <br><a href="${url}" target="_blank">${url}</a></p><p>and the link has been copied to your clipboard</p><br>
             <p style="margin-top:10px">Plugin by @OttersMeep for <a href="https://discord.com/invite/HXF5uMVuMP">PurpleTrain Ltd.</a><br><br>
-            TrainCarts is developed by BergerHealer completely independently of this project.</p>
+            The TrainCarts plugin is developed by BergerHealer completely independently of this project.</p>
         </div>
     `
 
@@ -424,8 +443,11 @@ function multiplyMatrices(A, B) {
 }
 
 function debug() {
-    console.log(getModelStructure() )
+    console.log(getPos(0))
+    /*
+    console.log(getModelStructure())
     convertAnimations()
+    */
 }
 
 function addTexture(text) {
@@ -492,7 +514,7 @@ No generative artificial intelligence or machine learning models were used in th
 function convertCube(cube) {
     PosOriginal = [(cube.from[0] + cube.to[0]) / 2, (cube.from[1] + cube.to[1]) / 2, (cube.from[2] + cube.to[2]) / 2]
     Rot = cube.rotation
-    Pos = translate(cube.from, cube.to, cube.origin, cube.rotation)
+    Pos = translate(PosOriginal, cube.origin, cube.rotation)
     var newCube = {
         PosX: Pos.x,
         PosY: Pos.y,
